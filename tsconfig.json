@@ -33,7 +33,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "components/landing"  ],
   "exclude": [
     "node_modules",
     "supabase/functions"

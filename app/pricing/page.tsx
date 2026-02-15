@@ -1,4 +1,4 @@
-//app\pricing\page.tsx
+// app/pricing/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -79,11 +79,11 @@ export default function PricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
 
   return (
-    <section className="min-h-screen bg-base-100 py-20 px-6">
-      <div className="mx-auto max-w-5xl space-y-16">
+    <main className="min-h-screen bg-base-100 flex items-center justify-center px-6 py-20">
+      <div className="w-full max-w-6xl space-y-16 text-center">
 
         {/* HEADER */}
-        <div className="text-center space-y-4">
+        <div className="space-y-4 max-w-2xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-base-content">
             Unlock SocialLike Premium
           </h1>
@@ -93,42 +93,42 @@ export default function PricingPage() {
         </div>
 
         {/* PRICING GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 place-items-center">
           {tiers.map((tier) => {
             const isSelected = selectedPlan === tier.planKey;
 
             return (
               <Card
                 key={tier.name}
-                className="
-                  relative w-full max-w-sm rounded-2xl flex flex-col justify-between cursor-pointer
-                  transform hover:-translate-y-1 hover:shadow-2xl transition-all
-                  hover:ring-2 hover:ring-accent hover:ring-offset-2 hover:ring-offset-base-100
-                  bg-base-200
-                "
+                className="relative w-full max-w-sm rounded-2xl flex flex-col justify-between bg-base-200
+                transform transition-all hover:-translate-y-1 hover:shadow-2xl
+                hover:ring-2 hover:ring-accent hover:ring-offset-2 hover:ring-offset-base-100"
               >
                 {tier.bestValue && (
                   <div
-                    className="
-                      absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-bold 
-                      text-green-700 dark:text-green-300
-                      bg-green-200 dark:bg-green-900/40
-                      shadow-[0_0_12px_rgba(34,197,94,0.4)] dark:shadow-[0_0_12px_rgba(34,197,94,0.8)]
-                      animate-pulse
-                    "
+                    className="absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-bold 
+                    text-green-700 dark:text-green-300
+                    bg-green-200 dark:bg-green-900/40
+                    shadow-[0_0_12px_rgba(34,197,94,0.4)] 
+                    dark:shadow-[0_0_12px_rgba(34,197,94,0.8)]
+                    animate-pulse"
                   >
                     Best Value
                   </div>
                 )}
 
+                {/* HEADER */}
                 <CardHeader className="text-center space-y-2">
                   <CardTitle className="text-2xl font-bold text-base-content">
                     {tier.name}
                   </CardTitle>
-                  <p className="text-base-content/70 text-sm">{tier.subtitle}</p>
+                  <p className="text-base-content/70 text-sm">
+                    {tier.subtitle}
+                  </p>
                 </CardHeader>
 
-                <CardContent className="space-y-5 text-center flex flex-col items-center">
+                {/* CONTENT */}
+                <CardContent className="space-y-5 flex flex-col items-center text-center">
                   <p className="text-4xl font-extrabold text-base-content">
                     {tier.price}
                   </p>
@@ -139,28 +139,29 @@ export default function PricingPage() {
                     </p>
                   )}
 
-                  <p className="text-base-content/60 text-sm">{tier.duration}</p>
+                  <p className="text-base-content/60 text-sm">
+                    {tier.duration}
+                  </p>
 
-                  <ul className="space-y-2 text-sm mx-auto w-fit text-left">
+                  <ul className="space-y-2 text-sm text-left mx-auto">
                     {tier.features.map((feat, idx) => (
                       <li key={idx} className="flex gap-2">
                         <span className="text-accent">✓</span>
-                        <span className="text-base-content">{feat}</span>
+                        <span>{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
 
-                <CardFooter>
+                {/* CTA */}
+                <CardFooter className="flex justify-center">
                   {!isSelected ? (
-                    <div
-                      className="w-full flex items-center justify-center py-4 rounded-xl bg-base-content/5 hover:bg-base-content/10 transition cursor-pointer"
+                    <button
                       onClick={() => setSelectedPlan(tier.planKey)}
+                      className="w-full py-4 rounded-xl bg-base-content/5 hover:bg-base-content/10 transition font-semibold text-base-content"
                     >
-                      <div className="w-full text-center font-semibold text-base-content">
-                        {tier.cta}
-                      </div>
-                    </div>
+                      {tier.cta}
+                    </button>
                   ) : (
                     <div className="w-full flex flex-col items-center">
                       <p className="mb-2 text-sm font-medium text-base-content">
@@ -180,10 +181,11 @@ export default function PricingPage() {
           })}
         </div>
 
-        <p className="text-center text-sm text-base-content/60">
+        {/* FOOTNOTE */}
+        <p className="text-sm text-base-content/60">
           One-time payments · Secure PayPal checkout · Instant access
         </p>
       </div>
-    </section>
+    </main>
   );
 }

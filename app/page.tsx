@@ -176,9 +176,6 @@ export default function Home() {
 
   if (!mounted) return null;
 
-  const toastPositions = ["top-20", "bottom-20"];
-  const toastPosition = toastPositions[toastIndex % 2];
-
   return (
     <>
       <Sidebar />
@@ -247,69 +244,72 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="py-32 px-10 bg-base-200">
-        <div className="max-w-6xl mx-auto space-y-20">
-          <h2 className="text-6xl font-extrabold text-center">
-            One Dashboard. Every Platform.
-          </h2>
+      {/* CENTERED FEATURES, TESTIMONIALS & CTA */}
+      <div className="flex flex-col items-center justify-center">
+        {/* FEATURES */}
+        <section id="features" className="py-32 px-10 bg-base-200 w-full">
+          <div className="max-w-6xl mx-auto text-center space-y-20">
+            <h2 className="text-6xl font-extrabold">
+              One Dashboard. Every Platform.
+            </h2>
 
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
-              <h3 className="text-3xl font-bold">Unified Analytics</h3>
-              <p className="text-base-content/70">
-                See your entire creator footprint in one place — no more switching apps.
-              </p>
-            </div>
+            <div className="grid md:grid-cols-3 gap-12 justify-center">
+              <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
+                <h3 className="text-3xl font-bold">Unified Analytics</h3>
+                <p className="text-base-content/70">
+                  See your entire creator footprint in one place — no more switching apps.
+                </p>
+              </div>
 
-            <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
-              <h3 className="text-3xl font-bold">Real Influence</h3>
-              <p className="text-base-content/70">
-                Your audience is bigger than your follower count. Social Like proves it.
-              </p>
-            </div>
+              <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
+                <h3 className="text-3xl font-bold">Real Influence</h3>
+                <p className="text-base-content/70">
+                  Your audience is bigger than your follower count. Social Like proves it.
+                </p>
+              </div>
 
-            <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
-              <h3 className="text-3xl font-bold">Monetization Ready</h3>
-              <p className="text-base-content/70">
-                Unlock insights that help you negotiate brand deals and sponsorships.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="py-32 px-10 bg-base-100">
-        <div className="max-w-6xl mx-auto space-y-20">
-          <h2 className="text-6xl font-extrabold text-center">
-            Loved by Creators Everywhere
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
-              <p className="text-lg italic">
-                “Social Like showed me influence I didn’t even know I had.”
-              </p>
-              <p className="font-bold">— Alex, Music Creator</p>
-            </div>
-
-            <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
-              <p className="text-lg italic">
-                “Finally a dashboard that understands creators.”
-              </p>
-              <p className="font-bold">— Maya, Fashion Influencer</p>
-            </div>
-
-            <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
-              <p className="text-lg italic">
-                “My brand deals doubled after using Social Like.”
-              </p>
-              <p className="font-bold">— Jordan, YouTuber</p>
+              <div className="p-10 bg-base-100 rounded-3xl shadow-xl space-y-4">
+                <h3 className="text-3xl font-bold">Monetization Ready</h3>
+                <p className="text-base-content/70">
+                  Unlock insights that help you negotiate brand deals and sponsorships.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* TESTIMONIALS */}
+        <section className="py-32 px-10 bg-base-100 w-full">
+          <div className="max-w-6xl mx-auto text-center space-y-20">
+            <h2 className="text-6xl font-extrabold">
+              Loved by Creators Everywhere
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-12 justify-center">
+              <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
+                <p className="text-lg italic">
+                  “Social Like showed me influence I didn’t even know I had.”
+                </p>
+                <p className="font-bold">— Alex, Music Creator</p>
+              </div>
+
+              <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
+                <p className="text-lg italic">
+                  “Finally a dashboard that understands creators.”
+                </p>
+                <p className="font-bold">— Maya, Fashion Influencer</p>
+              </div>
+
+              <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
+                <p className="text-lg italic">
+                  “My brand deals doubled after using Social Like.”
+                </p>
+                <p className="font-bold">— Jordan, YouTuber</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* PRODUCT HUNT BADGE */}
       <a
@@ -318,8 +318,6 @@ export default function Home() {
         rel="noopener noreferrer"
         className="fixed bottom-6 left-6 z-40 opacity-80 hover:opacity-100 transition hidden md:block"
       >
-
-        
         <Image
           src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=000000&theme=light"
           alt="Product Hunt"
@@ -329,7 +327,7 @@ export default function Home() {
       </a>
 
       {/* FOOTERS */}
-      <footer className="py-20 px-10 bg-base-200 border-t border-base-300">
+      <footer className="py-20 px-10 bg-base-200 border-t border-base-300 w-full">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
           <div>
             <h3 className="text-xl font-bold mb-4">Social Like</h3>
@@ -366,4 +364,3 @@ export default function Home() {
     </>
   );
 }
-
