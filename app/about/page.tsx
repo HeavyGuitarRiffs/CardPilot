@@ -1,45 +1,6 @@
 "use client";
 
-import {
-  SiX,
-  SiYoutube,
-  SiInstagram,
-  SiTiktok,
-  SiTwitch,
-  SiKick,
-  SiVimeo,
-  SiFlickr,
-  SiPinterest,
-  SiLinkedin,
-  SiReddit,
-  SiGithub,
-  SiStackoverflow,
-  SiMastodon,
-  SiBluesky,
-  SiTumblr,
-  SiSoundcloud,
-  SiBandcamp,
-  SiLastdotfm,
-  SiSteam,
-  SiItchdotio,
-  SiPatreon,
-  SiKofi,
-  SiSubstack,
-  SiMedium,
-  SiGhost,
-  SiOnlyfans,
-  SiShopify,
-  SiEtsy,
-  SiGumroad,
-  SiOdysee,
-  SiRumble,
-  SiDailymotion,
-  SiHiveBlockchain,
-  SiEthereum,
-  SiWeb3Dotjs,
-} from "react-icons/si";
-
-import { Video } from "lucide-react"; // BitChute fallback icon
+import { ALL_PLATFORMS } from "@/lib/platforms";
 
 export default function AboutPage() {
   return (
@@ -176,7 +137,7 @@ export default function AboutPage() {
           </p>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {PLATFORMS.map((p) => (
+            {ALL_PLATFORMS.map((p) => (
               <a
                 key={p.name}
                 href={p.url}
@@ -198,47 +159,3 @@ export default function AboutPage() {
     </main>
   );
 }
-
-/* PLATFORM REGISTRY — SimpleIcons + descriptions */
-const PLATFORMS = [
-  { name: "Twitter / X", icon: SiX, url: "https://x.com", desc: "Microblogging with followers." },
-  { name: "YouTube", icon: SiYoutube, url: "https://youtube.com", desc: "Largest video platform." },
-  { name: "Instagram", icon: SiInstagram, url: "https://instagram.com", desc: "Photo & video sharing." },
-  { name: "TikTok", icon: SiTiktok, url: "https://tiktok.com", desc: "Short-form video platform." },
-  { name: "Twitch", icon: SiTwitch, url: "https://twitch.tv", desc: "Live streaming for creators." },
-  { name: "Kick", icon: SiKick, url: "https://kick.com", desc: "Twitch competitor." },
-  { name: "Vimeo", icon: SiVimeo, url: "https://vimeo.com", desc: "Professional video hosting." },
-  { name: "Flickr", icon: SiFlickr, url: "https://flickr.com", desc: "Photography platform." },
-  { name: "Pinterest", icon: SiPinterest, url: "https://pinterest.com", desc: "Visual inspiration boards." },
-  { name: "LinkedIn", icon: SiLinkedin, url: "https://linkedin.com", desc: "Professional networking." },
-  { name: "Reddit", icon: SiReddit, url: "https://reddit.com", desc: "Communities & discussions." },
-  { name: "GitHub", icon: SiGithub, url: "https://github.com", desc: "Developer profiles & repos." },
-  { name: "StackOverflow", icon: SiStackoverflow, url: "https://stackoverflow.com", desc: "Developer Q&A." },
-  { name: "Mastodon", icon: SiMastodon, url: "https://mastodon.social", desc: "Decentralized microblogging." },
-  { name: "Bluesky", icon: SiBluesky, url: "https://bsky.app", desc: "AT Protocol social network." },
-  { name: "Tumblr", icon: SiTumblr, url: "https://tumblr.com", desc: "Blogging & social following." },
-  { name: "SoundCloud", icon: SiSoundcloud, url: "https://soundcloud.com", desc: "Music & audio sharing." },
-  { name: "Bandcamp", icon: SiBandcamp, url: "https://bandcamp.com", desc: "Indie music storefront." },
-  { name: "Last.fm", icon: SiLastdotfm, url: "https://last.fm", desc: "Music analytics." },
-  { name: "Steam", icon: SiSteam, url: "https://store.steampowered.com", desc: "Games & reviews." },
-  { name: "itch.io", icon: SiItchdotio, url: "https://itch.io", desc: "Indie game marketplace." },
-  { name: "Patreon", icon: SiPatreon, url: "https://patreon.com", desc: "Membership platform." },
-  { name: "Ko-fi", icon: SiKofi, url: "https://ko-fi.com", desc: "Donations & posts." },
-  { name: "Substack", icon: SiSubstack, url: "https://substack.com", desc: "Newsletters & blogs." },
-  { name: "Medium", icon: SiMedium, url: "https://medium.com", desc: "Writing platform." },
-  { name: "Ghost", icon: SiGhost, url: "https://ghost.org", desc: "Independent publishing." },
-  { name: "OnlyFans", icon: SiOnlyfans, url: "https://onlyfans.com", desc: "Subscription content." },
-  { name: "Shopify", icon: SiShopify, url: "https://shopify.com", desc: "Creator storefronts." },
-  { name: "Etsy", icon: SiEtsy, url: "https://etsy.com", desc: "Handmade goods marketplace." },
-  { name: "Gumroad", icon: SiGumroad, url: "https://gumroad.com", desc: "Digital product storefront." },
-  { name: "Odysee", icon: SiOdysee, url: "https://odysee.com", desc: "Decentralized video." },
-  { name: "Rumble", icon: SiRumble, url: "https://rumble.com", desc: "Video platform." },
-  { name: "Dailymotion", icon: SiDailymotion, url: "https://dailymotion.com", desc: "Global video platform." },
-
-  // BitChute uses Lucide Video icon
-  { name: "BitChute", icon: Video, url: "https://bitchute.com", desc: "Alternative video." },
-
-  { name: "Hive", icon: SiHiveBlockchain, url: "https://hive.blog", desc: "Web3 social blogging." },
-  { name: "Peepeth", icon: SiEthereum, url: "https://peepeth.com", desc: "Ethereum microblogging." },
-  { name: "DeSo", icon: SiWeb3Dotjs, url: "https://deso.com", desc: "Decentralized social graph." },
-];
