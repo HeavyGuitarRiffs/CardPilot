@@ -1,3 +1,5 @@
+//app\about\page.tsx
+
 "use client";
 
 import { ALL_PLATFORMS } from "@/lib/platforms";
