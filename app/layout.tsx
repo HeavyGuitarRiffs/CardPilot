@@ -18,8 +18,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Social Like",
-  description: "Track social growth. Convert attention into income.",
+  title: "Comment Se Va",
+  description: "Track social alertness. Convert attention into income.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

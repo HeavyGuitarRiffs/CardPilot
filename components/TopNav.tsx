@@ -17,7 +17,7 @@ export default function TopNav() {
   return (
     <header className="w-full bg-base-200 shadow-md flex justify-between items-center px-6 py-3 sticky top-0 z-50">
       <Link href="/" className="text-2xl font-bold">
-        Social Like
+        Comment Se Va
       </Link>
 
       <div className="flex gap-4 items-center">

@@ -85,7 +85,7 @@ export default function PricingPage() {
         {/* HEADER */}
         <div className="space-y-4 max-w-2xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-base-content">
-            Unlock SocialLike Premium
+            Unlock Comment Se Va Premium
           </h1>
           <p className="text-lg text-base-content/70">
             One-time payments. No subscriptions. Full creator analytics.
