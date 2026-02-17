@@ -14,7 +14,7 @@ export default async function ProfilePage() {
 
   if (!user) redirect("/login");
 
-  // 2) Fetch profile
+  // 2) Fetch profile (user_avatars table)
   const { data: profile, error: profileError } = await supabase
     .from("user_avatars")
     .select("*")
@@ -25,7 +25,7 @@ export default async function ProfilePage() {
     console.error("Profile fetch error:", profileError);
   }
 
-  // 3) Fetch socials (no metrics)
+  // 3) Fetch socials
   const { data: savedSocials, error: socialsError } = await supabase
     .from("user_socials")
     .select("id, handle, enabled, linktree")
@@ -42,17 +42,16 @@ export default async function ProfilePage() {
       handle: s.handle,
       enabled: s.enabled ?? false,
       linktree: s.linktree ?? false,
-      // No metrics on profile page
       metrics: { power_level: 0 },
     })) ?? [];
 
+  // 4) Build initial profile object
   const initialProfile: UserAvatar = {
     display_name: profile?.display_name ?? "",
     bio: profile?.bio ?? "",
     country: profile?.country ?? "",
-    timezone:
-      profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
     avatar_url: profile?.avatar_url ?? null,
+    social_archetype: profile?.social_archetype ?? null,
   };
 
   return (

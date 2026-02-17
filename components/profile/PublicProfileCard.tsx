@@ -1,3 +1,5 @@
+//components\profile\PublicProfileCard.tsx
+
 "use client";
 
 import Image from "next/image";

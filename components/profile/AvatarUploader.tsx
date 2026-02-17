@@ -1,14 +1,20 @@
+//components\profile\AvatarUploader.tsx
 "use client"
 
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { saveAvatar, loadAvatar } from "@/lib/avatar"
 
-export default function AvatarUploader() {
+type AvatarUploaderProps = {
+  onAvatarChange?: (base64: string) => void
+}
+
+export default function AvatarUploader({ onAvatarChange }: AvatarUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Load avatar synchronously during render
-  const [avatar, setAvatar] = useState<string | null>(() => loadAvatar())
+  const [avatar, setAvatar] = useState<string | null>(() => {
+    return typeof window !== "undefined" ? loadAvatar() : null
+  })
 
   function handleFile(file: File) {
     const reader = new FileReader()
@@ -16,6 +22,9 @@ export default function AvatarUploader() {
       const base64 = reader.result as string
       setAvatar(base64)
       saveAvatar(base64)
+
+      // 🔥 NEW: notify parent component
+      if (onAvatarChange) onAvatarChange(base64)
     }
     reader.readAsDataURL(file)
   }

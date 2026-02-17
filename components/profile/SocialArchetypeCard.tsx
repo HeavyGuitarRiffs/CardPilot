@@ -1,3 +1,4 @@
+//components\profile\SocialArchetypeCard.tsx
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,7 +42,12 @@ const ARCHETYPES = [
   },
 ]
 
-export default function SocialArchetypeCard() {
+type Props = {
+  value: string | null
+  onChange: (id: string) => void
+}
+
+export default function SocialArchetypeCard({ value, onChange }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -49,25 +55,32 @@ export default function SocialArchetypeCard() {
       </CardHeader>
 
       <CardContent className="grid md:grid-cols-2 gap-4">
-        {ARCHETYPES.map((type) => (
-          <button
-            key={type.id}
-            className="group rounded-xl border border-base-300 p-4 text-left hover:border-primary hover:bg-primary/5 transition"
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">{type.emoji}</span>
+        {ARCHETYPES.map((type) => {
+          const selected = value === type.id
 
-              <div>
-                <p className="font-semibold group-hover:text-primary">
-                  {type.title}
-                </p>
-                <p className="text-sm opacity-70">
-                  {type.description}
-                </p>
+          return (
+            <button
+              key={type.id}
+              onClick={() => onChange(type.id)}
+              className={`group rounded-xl border p-4 text-left transition
+                ${selected 
+                  ? "border-primary bg-primary/10" 
+                  : "border-base-300 hover:border-primary hover:bg-primary/5"
+                }`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">{type.emoji}</span>
+
+                <div>
+                  <p className={`font-semibold ${selected ? "text-primary" : "group-hover:text-primary"}`}>
+                    {type.title}
+                  </p>
+                  <p className="text-sm opacity-70">{type.description}</p>
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          )
+        })}
       </CardContent>
     </Card>
   )

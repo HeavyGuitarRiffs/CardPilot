@@ -1,3 +1,4 @@
+//app\dashboard\profile\ProfilePageClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -60,24 +61,31 @@ export default function ProfilePageClient({
   initialSocials,
   userId,
 }: ProfilePageClientProps) {
+  // PROFILE FIELDS
   const [displayName, setDisplayName] = useState(initialProfile.display_name ?? "");
   const [bio, setBio] = useState(initialProfile.bio ?? "");
   const [country, setCountry] = useState(initialProfile.country ?? "");
-  const [timezone, setTimezone] = useState(
-    initialProfile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
-  const [avatar, setAvatar] = useState<string | null>(initialProfile.avatar_url ?? null);
+
+  // AVATAR
+  const [avatar, setAvatar] = useState<string>(initialProfile.avatar_url ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  // SOCIAL ARCHETYPE
+  const [socialArchetype, setSocialArchetype] = useState<string | null>(
+    initialProfile.social_archetype ?? null
+  );
+
+  // SOCIALS
   const [socials, setSocials] = useState<SocialLink[]>(initialSocials);
+
   const [saving, setSaving] = useState(false);
 
+  // COMPLETION METER
   const completion =
-    (displayName ? 20 : 0) +
-    (country ? 20 : 0) +
-    (bio ? 20 : 0) +
-    (timezone ? 20 : 0) +
-    (avatar ? 20 : 0);
+    (displayName ? 25 : 0) +
+    (country ? 25 : 0) +
+    (bio ? 25 : 0) +
+    (avatar ? 25 : 0);
 
   const highlightedComments = [
     "This post went viral! 🚀",
@@ -85,6 +93,7 @@ export default function ProfilePageClient({
     "Comment streak achieved!",
   ];
 
+  // HANDLE AVATAR FROM FILE INPUT
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
@@ -93,12 +102,20 @@ export default function ProfilePageClient({
     }
   };
 
+  // HANDLE AVATAR FROM AvatarUploader (base64)
+  const handleAvatarUploaderChange = (base64: string) => {
+    setAvatar(base64);
+    setAvatarFile(null);
+  };
+
+  // SAVE PROFILE
   const saveProfile = async () => {
     setSaving(true);
 
     try {
-      let avatar_url = avatar;
+      let avatar_url = initialProfile.avatar_url ?? "";
 
+      // If user uploaded a file → upload to Supabase Storage
       if (avatarFile) {
         const path = `${userId}/${avatarFile.name}`;
 
@@ -112,18 +129,26 @@ export default function ProfilePageClient({
         avatar_url = data.publicUrl;
       }
 
-     const { error: profileError } = await supabase
-  .from("user_avatars")
-  .upsert({
-    user_id: userId,
-    avatar_url: avatar_url ?? "",
-    display_name: displayName ?? "",
-    bio: bio ?? "",
-    country: country ?? "",
-  });
+      // If user used AvatarUploader (base64)
+      if (!avatarFile && avatar && avatar.startsWith("data:image")) {
+        avatar_url = avatar;
+      }
+
+      // UPSERT PROFILE
+      const { error: profileError } = await supabase
+        .from("user_avatars")
+        .upsert({
+          user_id: userId,
+          avatar_url: avatar_url || "",
+          display_name: displayName,
+          bio,
+          country,
+          social_archetype: socialArchetype,
+        });
 
       if (profileError) throw profileError;
 
+      // UPSERT SOCIALS
       for (const social of socials) {
         if (!social.handle) continue;
 
@@ -138,7 +163,7 @@ export default function ProfilePageClient({
         if (error) throw error;
       }
 
-      toast.success("Profile & socials saved!");
+      toast.success("Profile updated!");
     } catch (err) {
       console.error(err);
       toast.error("Failed to save profile");
@@ -206,7 +231,8 @@ export default function ProfilePageClient({
               </HoverCard>
 
               <Input type="file" accept="image/*" onChange={handleAvatarChange} />
-              <AvatarUploader />
+
+              <AvatarUploader onAvatarChange={handleAvatarUploaderChange} />
             </div>
 
             <div className="space-y-2">
@@ -244,19 +270,15 @@ export default function ProfilePageClient({
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Timezone</label>
-              <Input
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              />
-            </div>
           </TabsContent>
 
           {/* SOCIAL TAB */}
           <TabsContent value="social" className="space-y-6">
-            <SocialArchetypeCard />
+            <SocialArchetypeCard
+              value={socialArchetype}
+              onChange={setSocialArchetype}
+            />
+
             <Separator />
 
             <div className="space-y-2">
