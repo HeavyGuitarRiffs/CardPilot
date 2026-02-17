@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { countries } from "@/lib/countries";
 
 import {
   Avatar,
@@ -12,20 +13,33 @@ import {
 } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+
+
 import {
   HoverCard,
   HoverCardTrigger,
   HoverCardContent,
 } from "@/components/ui/hover-card";
+
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+
 import {
   Tabs,
   TabsList,
@@ -40,15 +54,6 @@ import AvatarUploader from "@/components/profile/AvatarUploader";
 import type { UserAvatar, SocialLink } from "./types";
 
 const supabase = createClient();
-
-const flags: Record<string, string> = {
-  "United States": "🇺🇸",
-  Canada: "🇨🇦",
-  "United Kingdom": "🇬🇧",
-  Germany: "🇩🇪",
-  India: "🇮🇳",
-  Other: "🌍",
-};
 
 type ProfilePageClientProps = {
   initialProfile: UserAvatar;
@@ -255,20 +260,44 @@ export default function ProfilePageClient({
               <p className="text-xs opacity-60">{bio.length}/140 characters</p>
             </div>
 
+            {/* SEARCHABLE COUNTRY SELECTOR */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="w-full">
-                  {country ? `${flags[country]} ${country}` : "Select country"}
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(flags).map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {flags[c]} {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                  >
+                    {country
+                      ? `${countries.find((c) => c.name === country)?.flag ?? ""} ${country}`
+                      : "Select country"}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="p-0 w-[300px]">
+                  <Command>
+                    <CommandInput placeholder="Search country..." />
+                    <CommandList className="max-h-64 overflow-y-auto">
+                      <CommandEmpty>No country found.</CommandEmpty>
+
+                      <CommandGroup>
+                        {countries.map((c) => (
+                          <CommandItem
+                            key={c.name}
+                            value={c.name}
+                            onSelect={() => setCountry(c.name)}
+                          >
+                            <span className="mr-2">{c.flag}</span>
+                            {c.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </TabsContent>
 
