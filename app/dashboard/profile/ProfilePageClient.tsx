@@ -1,4 +1,3 @@
-//app\dashboard\profile\ProfilePageClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,11 +5,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { countries } from "@/lib/countries";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -28,7 +23,6 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-
 
 import {
   HoverCard,
@@ -66,26 +60,25 @@ export default function ProfilePageClient({
   initialSocials,
   userId,
 }: ProfilePageClientProps) {
-  // PROFILE FIELDS
-  const [displayName, setDisplayName] = useState(initialProfile.display_name ?? "");
+  const [displayName, setDisplayName] = useState(
+    initialProfile.display_name ?? ""
+  );
   const [bio, setBio] = useState(initialProfile.bio ?? "");
   const [country, setCountry] = useState(initialProfile.country ?? "");
 
-  // AVATAR
-  const [avatar, setAvatar] = useState<string>(initialProfile.avatar_url ?? "");
+  const [avatar, setAvatar] = useState<string>(
+    initialProfile.avatar_url ?? ""
+  );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  // SOCIAL ARCHETYPE
   const [socialArchetype, setSocialArchetype] = useState<string | null>(
     initialProfile.social_archetype ?? null
   );
 
-  // SOCIALS
   const [socials, setSocials] = useState<SocialLink[]>(initialSocials);
 
   const [saving, setSaving] = useState(false);
 
-  // COMPLETION METER
   const completion =
     (displayName ? 25 : 0) +
     (country ? 25 : 0) +
@@ -98,7 +91,6 @@ export default function ProfilePageClient({
     "Comment streak achieved!",
   ];
 
-  // HANDLE AVATAR FROM FILE INPUT
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
@@ -107,20 +99,17 @@ export default function ProfilePageClient({
     }
   };
 
-  // HANDLE AVATAR FROM AvatarUploader (base64)
   const handleAvatarUploaderChange = (base64: string) => {
     setAvatar(base64);
     setAvatarFile(null);
   };
 
-  // SAVE PROFILE
   const saveProfile = async () => {
     setSaving(true);
 
     try {
       let avatar_url = initialProfile.avatar_url ?? "";
 
-      // If user uploaded a file → upload to Supabase Storage
       if (avatarFile) {
         const path = `${userId}/${avatarFile.name}`;
 
@@ -134,26 +123,21 @@ export default function ProfilePageClient({
         avatar_url = data.publicUrl;
       }
 
-      // If user used AvatarUploader (base64)
       if (!avatarFile && avatar && avatar.startsWith("data:image")) {
         avatar_url = avatar;
       }
 
-      // UPSERT PROFILE
-      const { error: profileError } = await supabase
-        .from("user_avatars")
-        .upsert({
-          user_id: userId,
-          avatar_url: avatar_url || "",
-          display_name: displayName,
-          bio,
-          country,
-          social_archetype: socialArchetype,
-        });
+      const { error: profileError } = await supabase.from("user_avatars").upsert({
+        user_id: userId,
+        avatar_url,
+        display_name: displayName,
+        bio,
+        country,
+        social_archetype: socialArchetype,
+      });
 
       if (profileError) throw profileError;
 
-      // UPSERT SOCIALS
       for (const social of socials) {
         if (!social.handle) continue;
 
@@ -162,7 +146,7 @@ export default function ProfilePageClient({
           user_id: userId,
           handle: social.handle,
           enabled: social.enabled,
-          linktree: social.linktree || false,
+          linktree: social.linktree ?? false,
         });
 
         if (error) throw error;
@@ -170,30 +154,17 @@ export default function ProfilePageClient({
 
       toast.success("Profile updated!");
     } catch (err) {
-      console.error(err);
+      const error = err instanceof Error ? err : new Error("Unknown error");
+      console.error("SUPABASE ERROR:", error.message);
       toast.error("Failed to save profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const totalPowerLevel = socials.reduce(
-    (sum, s) => sum + (s.metrics?.power_level ?? 0),
-    0
-  );
-  const maxPowerLevel = socials.length * 1000;
-
   return (
-    <main className="min-h-screen bg-base-100 px-6 py-12 text-base-content flex justify-center">
+    <main className="w-full flex justify-center">
       <div className="w-full max-w-3xl">
-        <section className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight">Your Profile</h1>
-          <p className="opacity-70">
-            This powers streaks, challenges, leaderboards, and rewards.
-          </p>
-          <Separator />
-        </section>
-
         <Tabs defaultValue="info" className="w-full">
           <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="info">Info</TabsTrigger>
@@ -212,9 +183,6 @@ export default function ProfilePageClient({
                 value={completion}
                 max={100}
               />
-              <p className="text-xs opacity-60">
-                Higher completion unlocks incentives and premium mechanics
-              </p>
             </div>
 
             <div className="flex flex-col items-center gap-6">
@@ -236,69 +204,54 @@ export default function ProfilePageClient({
               </HoverCard>
 
               <Input type="file" accept="image/*" onChange={handleAvatarChange} />
-
               <AvatarUploader onAvatarChange={handleAvatarUploaderChange} />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Display name</label>
-              <Input
-                placeholder="Creator123"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
-            </div>
+            <Input
+              placeholder="Creator123"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Bio</label>
-              <Textarea
-                placeholder="Building in public · Daily commenting"
-                maxLength={140}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-              />
-              <p className="text-xs opacity-60">{bio.length}/140 characters</p>
-            </div>
+            <Textarea
+              placeholder="Building in public · Daily commenting"
+              maxLength={140}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+            />
 
-            {/* SEARCHABLE COUNTRY SELECTOR */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Country</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {country
+                    ? `${
+                        countries.find((c) => c.name === country)?.flag ?? ""
+                      } ${country}`
+                    : "Select country"}
+                </Button>
+              </PopoverTrigger>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                  >
-                    {country
-                      ? `${countries.find((c) => c.name === country)?.flag ?? ""} ${country}`
-                      : "Select country"}
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent className="p-0 w-[300px]">
-                  <Command>
-                    <CommandInput placeholder="Search country..." />
-                    <CommandList className="max-h-64 overflow-y-auto">
-                      <CommandEmpty>No country found.</CommandEmpty>
-
-                      <CommandGroup>
-                        {countries.map((c) => (
-                          <CommandItem
-                            key={c.name}
-                            value={c.name}
-                            onSelect={() => setCountry(c.name)}
-                          >
-                            <span className="mr-2">{c.flag}</span>
-                            {c.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+              <PopoverContent className="p-0 w-[300px]">
+                <Command>
+                  <CommandInput placeholder="Search country..." />
+                  <CommandList className="max-h-64 overflow-y-auto">
+                    <CommandEmpty>No country found.</CommandEmpty>
+                    <CommandGroup>
+                      {countries.map((c) => (
+                        <CommandItem
+                          key={c.name}
+                          value={c.name}
+                          onSelect={() => setCountry(c.name)}
+                        >
+                          <span className="mr-2">{c.flag}</span>
+                          {c.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </TabsContent>
 
           {/* SOCIAL TAB */}
@@ -310,58 +263,29 @@ export default function ProfilePageClient({
 
             <Separator />
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Total Power Level</p>
-              <progress
-                className="progress progress-primary w-full"
-                value={totalPowerLevel}
-                max={maxPowerLevel || 1}
-              />
-              <Badge variant="secondary">{totalPowerLevel}</Badge>
-            </div>
+            {socials.map((s) => {
+              const power = s.metrics?.power_level ?? 0;
 
-            {socials.map((s) => (
-              <div key={s.id} className="flex items-center gap-3">
-                <span className="w-1/4">{s.handle}</span>
-                <progress
-                  className="progress progress-accent w-3/4"
-                  value={s.metrics.power_level}
-                  max={1000}
-                />
-                <Badge variant="secondary">{s.metrics.power_level}</Badge>
-              </div>
-            ))}
 
-            <Separator />
-            <h3 className="text-lg font-semibold">Saved Socials</h3>
-
-            {socials.length === 0 ? (
-              <p className="text-sm opacity-60">No socials connected yet.</p>
-            ) : (
-              <ul className="space-y-2">
-                {socials.map((s) => (
-                  <li key={s.id} className="flex items-center gap-3">
-                    <span>{s.linktree ? "🔗" : "💬"}</span>
-                    <span>{s.handle}</span>
-                    <Badge variant={s.enabled ? "secondary" : "outline"}>
-                      {s.enabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
+              return (
+                <div key={s.id} className="flex items-center gap-3">
+                  <span className="w-1/4">{s.handle}</span>
+                  <progress
+                    className="progress progress-accent w-3/4"
+                    value={power}
+                    max={1000}
+                  />
+                  <Badge variant="secondary">{power}</Badge>
+                </div>
+              );
+            })}
           </TabsContent>
 
-          {/* PREFERENCES */}
-          <TabsContent value="preferences" className="space-y-4 text-center">
+          <TabsContent value="preferences" className="text-center">
             <h2 className="text-lg font-semibold">Engagement Preferences</h2>
-            <p className="text-sm opacity-70">
-              These settings control daily challenges, streaks, and leaderboard placement.
-            </p>
             <Separator />
           </TabsContent>
 
-          {/* COMMENTS */}
           <TabsContent value="comments">
             <HighlightedComments initialComments={highlightedComments} />
           </TabsContent>
@@ -369,8 +293,6 @@ export default function ProfilePageClient({
 
         <div className="mt-8 flex justify-center">
           <Button
-            variant="default"
-            size="lg"
             className="w-full max-w-sm"
             onClick={saveProfile}
             disabled={saving}

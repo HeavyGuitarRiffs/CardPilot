@@ -327,10 +327,12 @@ export default function ConnectPageClient({
   initialSocials,
   initialEmail,
   initialEmailStatus,
+  userId, // ← ADDED
 }: {
   initialSocials: SocialLink[];
   initialEmail: string;
   initialEmailStatus: "unverified" | "pending" | "verified";
+  userId: string; // ← ADDED
 }) {
   const router = useRouter();
 
@@ -359,16 +361,15 @@ export default function ConnectPageClient({
 
     const newSocial = createEmptySocial();
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("user_socials")
       .insert({
         id: newSocial.id,
+        user_id: userId, // ← REQUIRED
         handle: "",
         enabled: true,
         platform: "unknown",
-      })
-      .select()
-      .single();
+      });
 
     if (error) {
       toast.error(error.message);
@@ -395,6 +396,7 @@ export default function ConnectPageClient({
     startTransition(async () => {
       const payload = socials.map((s) => ({
         id: s.id,
+        user_id: userId, // ← REQUIRED
         handle: s.handle,
         enabled: s.enabled,
         platform: detectPlatform(s.handle),
@@ -433,6 +435,19 @@ export default function ConnectPageClient({
     const parsed = await parseLinktree(url);
     if (parsed.length === 0) {
       toast.error("Not a valid Linktree URL");
+      return;
+    }
+
+    // Add user_id to each imported social
+    const withUserId = parsed.map((p) => ({
+      ...p,
+      user_id: userId,
+    }));
+
+    const { error } = await supabase.from("user_socials").insert(withUserId);
+
+    if (error) {
+      toast.error(error.message);
       return;
     }
 
@@ -475,7 +490,9 @@ export default function ConnectPageClient({
               placeholder="Paste Linktree URL"
               onKeyDown={async (e) => {
                 if (e.key === "Enter") {
-                  await handleLinktreeImport((e.target as HTMLInputElement).value);
+                  await handleLinktreeImport(
+                    (e.target as HTMLInputElement).value
+                  );
                 }
               }}
             />

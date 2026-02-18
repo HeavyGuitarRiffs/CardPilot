@@ -8,10 +8,8 @@ export type UserAvatar = {
   bio?: string | null;
   country?: string | null;
 
-  // Added to support SocialArchetypeCard
   social_archetype?: string | null;
 
-  // Avatar can be a URL or base64
   avatar_url?: string | null;
 
   created_at?: string | null;
@@ -19,13 +17,17 @@ export type UserAvatar = {
   source?: string | null;
 };
 
+export type SocialMetrics = {
+  power_level?: number | null;
+};
+
 export type SocialLink = {
   id?: string;
+  user_id?: string;
+
   handle: string;
   enabled: boolean;
   linktree?: boolean;
 
-  metrics: {
-    power_level: number;
-  };
+  metrics?: SocialMetrics | null;
 };

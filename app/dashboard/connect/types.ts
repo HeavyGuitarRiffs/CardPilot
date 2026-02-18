@@ -1,3 +1,5 @@
+//app\dashboard\connect\types.ts
+
 export type SocialLink = {
   id: string;
   handle: string;
