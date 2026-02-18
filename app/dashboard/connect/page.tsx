@@ -37,11 +37,13 @@ export default async function ConnectPage() {
     ? "verified"
     : "unverified";
 
+  // ✅ Pass userId to satisfy TypeScript
   return (
     <ConnectPageClient
       initialSocials={initialSocials}
       initialEmail={initialEmail}
       initialEmailStatus={initialEmailStatus}
+      userId={user.id} // <--- FIXED
     />
   );
 }
