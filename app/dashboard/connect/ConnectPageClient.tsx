@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { ALL_PLATFORMS } from "@/lib/platforms";
 
 import {
   Card,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/table";
 
 import { Plus, Trash2, GripVertical } from "lucide-react";
+
 import {
   DndContext,
   closestCenter,
@@ -35,9 +37,8 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion, AnimatePresence } from "framer-motion";
 
-import { ALL_PLATFORMS } from "@/lib/platforms";
+import { motion } from "framer-motion";
 import type { SocialLink } from "./types";
 
 const supabase = getSupabaseBrowserClient();
@@ -68,7 +69,6 @@ function detectPlatform(handle: string): SocialLink["platform"] {
 }
 
 /* ------------------- Sortable Row ------------------- */
-
 function SortableRow({
   social,
   updateSocial,
@@ -81,15 +81,13 @@ function SortableRow({
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: social.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
-  const Icon = ALL_PLATFORMS.find(p => p.name.toLowerCase() === social.platform)?.icon || null;
-
   return (
     <TableRow ref={setNodeRef} style={style}>
       <TableCell className="w-8 cursor-grab" {...attributes} {...listeners}>
         <GripVertical className="h-4 w-4" />
       </TableCell>
 
-      <TableCell>{Icon && <Icon className="w-5 h-5" />}</TableCell>
+      <TableCell>{social.platform}</TableCell>
 
       <TableCell>
         <Input
@@ -108,6 +106,10 @@ function SortableRow({
       </TableCell>
 
       <TableCell className="text-right">
+        <div className="flex flex-col text-right">
+          <span>{social.followers} followers</span>
+          <span>{social.comments} comments</span>
+        </div>
         <Button variant="ghost" size="icon" onClick={() => removeSocial(social.id)}>
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -117,7 +119,6 @@ function SortableRow({
 }
 
 /* ------------------- Main Component ------------------- */
-
 export default function ConnectPageClient({
   initialSocials,
   userId,
@@ -147,8 +148,8 @@ export default function ConnectPageClient({
           handle: s.handle,
           platform: detectPlatform(s.handle),
           enabled: s.enabled,
-          followers: s.followers,
-          comments: s.comments,
+          followers: s.followers, // keep tracking
+          comments: s.comments,   // keep tracking
           linktree: s.linktree,
           order_index: updated.findIndex((x) => x.id === s.id),
         },
@@ -158,7 +159,7 @@ export default function ConnectPageClient({
     });
   };
 
-  /* ------------------- Add Social ------------------- */
+  /* ------------------- Add / Remove Social ------------------- */
   const addSocial = async () => {
     setAdding(true);
     const newSocial = createEmptySocial();
@@ -174,7 +175,6 @@ export default function ConnectPageClient({
     setAdding(false);
   };
 
-  /* ------------------- Remove Social ------------------- */
   const removeSocial = async (id: string) => {
     const { error } = await supabase.from("user_socials").delete().eq("id", id);
     if (error) toast.error(error.message);
@@ -199,7 +199,11 @@ export default function ConnectPageClient({
   /* ------------------- Save All ------------------- */
   const saveAll = async () => {
     startTransition(async () => {
-      const payload = socials.map((s, i) => ({ ...s, platform: detectPlatform(s.handle), order_index: i }));
+      const payload = socials.map((s, i) => ({
+        ...s,
+        platform: detectPlatform(s.handle),
+        order_index: i,
+      }));
       const { error } = await supabase.from("user_socials").upsert(payload, { onConflict: "id" });
       if (error) toast.error(error.message);
       else toast.success("All saved");
@@ -210,7 +214,6 @@ export default function ConnectPageClient({
   /* ------------------- Linktree Import ------------------- */
   const handleLinktreeImport = async (url: string) => {
     if (!url.includes("linktr.ee")) return toast.error("Not a valid Linktree URL");
-
     const baseId = crypto.randomUUID();
     const parsed: SocialLink[] = [
       { id: `${baseId}-tw`, handle: "https://twitter.com/from_linktree", platform: "twitter", enabled: true, followers: 1200, comments: 30, linktree: true },
@@ -226,18 +229,19 @@ export default function ConnectPageClient({
     toast.success("Imported from Linktree");
   };
 
-  /* ------------------- Massive Centered Social Showcase ------------------- */
+  /* ------------------- Carousel / Massive Platform Icons ------------------- */
   useEffect(() => {
     const interval = setInterval(() => {
-      setSlideIndex((prev) => (prev + 1) % socials.length);
+      setSlideIndex((prev) => (prev + 1) % ALL_PLATFORMS.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [socials.length]);
+  }, []);
 
+  /* ------------------- Render ------------------- */
   return (
     <Card>
       <CardHeader><CardTitle>Connect Your Socials</CardTitle></CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="space-y-6">
 
         {/* Linktree Input */}
         <div className="flex gap-2">
@@ -263,7 +267,7 @@ export default function ConnectPageClient({
                   <TableHead>Platform</TableHead>
                   <TableHead>Handle</TableHead>
                   <TableHead>Enabled</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Stats</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -280,28 +284,29 @@ export default function ConnectPageClient({
           <Button onClick={saveAll} disabled={isPending}>Save All</Button>
         </div>
 
-        {/* MASSIVE CENTERED ICON SHOWCASE */}
-        <section className="my-24 flex justify-center items-center overflow-hidden relative h-64">
-          <AnimatePresence initial={false}>
-            {socials.length > 0 && (
-              <motion.div
-                key={socials[slideIndex]?.id}
-                className="absolute flex justify-center items-center w-full h-full"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.8 }}
-              >
-                {(() => {
-                  const platform = ALL_PLATFORMS.find(p => p.name.toLowerCase() === socials[slideIndex].platform);
-                  if (!platform) return null;
-                  const Icon = platform.icon;
-                  return <Icon className="w-48 h-48 text-primary" />;
-                })()}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </section>
+        {/* Massive Icon Carousel */}
+        <div className="mt-12 flex flex-col items-center space-y-4">
+          <div className="overflow-hidden relative w-full flex justify-center">
+            <motion.div
+              className="flex gap-8"
+              animate={{ x: -slideIndex * 200 }}
+              transition={{ type: "spring", stiffness: 80 }}
+            >
+              {ALL_PLATFORMS.map((p) => (
+                <a
+                  key={p.name}
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center w-40 h-40"
+                >
+                  <p.icon className="w-24 h-24 text-primary opacity-80 hover:opacity-100 transition" />
+                  <p className="text-center mt-2 text-sm opacity-70">{p.desc}</p>
+                </a>
+              ))}
+            </motion.div>
+          </div>
+        </div>
 
       </CardContent>
     </Card>
