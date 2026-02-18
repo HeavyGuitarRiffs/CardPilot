@@ -7,23 +7,24 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const url = req.nextUrl.pathname;
 
-  // Allow API routes
-  if (url.startsWith("/api")) {
+  // --- 1) Allow API routes and favicon/static assets
+  if (
+    url.startsWith("/api") ||
+    url.startsWith("/_next") ||
+    url.startsWith("/icon") ||       // 👈 allow favicon
+    url.startsWith("/favicon.ico")   // optional if used
+  ) {
     return res;
   }
 
-  // Public routes
+  // --- 2) Public routes
   const publicRoutes = ["/", "/login", "/pricing", "/about"];
-  if (publicRoutes.includes(url)) {
-    return res;
-  }
+  if (publicRoutes.includes(url)) return res;
 
-  // DEV BYPASS
-  if (process.env.NODE_ENV === "development") {
-    return res;
-  }
+  // --- 3) DEV BYPASS
+  if (process.env.NODE_ENV === "development") return res;
 
-  // Auth check
+  // --- 4) Auth check
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -49,7 +50,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Fetch user plan
+  // --- 5) Paid-only routes
   const { data: userPlan } = await supabase
     .from("user_plans")
     .select("plan_id")
@@ -57,12 +58,10 @@ export async function middleware(req: NextRequest) {
     .single();
 
   const plan = userPlan?.plan_id || "free";
-
-  // Paid-only routes (now includes Linktree)
   const paidRoutes = [
     "/dashboard/analytics",
     "/dashboard/insights",
-    "/dashboard/linktree"
+    "/dashboard/linktree",
   ];
 
   if (paidRoutes.includes(url) && plan === "free") {

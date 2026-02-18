@@ -17,7 +17,7 @@ type PlanId = "monthly" | "quarterly" | "semiannual" | "lifetime" | null;
 const tiers = [
   {
     name: "1 Month Access",
-    price: "$9",
+    price: "$7",
     duration: "One-time payment",
     planKey: "monthly" as PlanId,
     subtitle: "Try the full creator analytics suite",
