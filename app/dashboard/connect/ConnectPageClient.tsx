@@ -23,8 +23,6 @@ import {
 } from "@/components/ui/table";
 
 import { Plus, Trash2, GripVertical } from "lucide-react";
-import { FaTwitter, FaInstagram, FaTiktok, FaYoutube, FaLink } from "react-icons/fa";
-
 import {
   DndContext,
   closestCenter,
@@ -37,9 +35,9 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { motion } from "framer-motion";
-
+import { ALL_PLATFORMS } from "@/lib/platforms";
 import type { SocialLink } from "./types";
 
 const supabase = getSupabaseBrowserClient();
@@ -53,12 +51,11 @@ function createEmptySocial(): SocialLink {
     platform: "unknown",
     enabled: true,
     followers: 0,
-    comments: 0,   // now valid
+    comments: 0,
     linktree: false,
     order_index: 0,
   };
 }
-
 
 function detectPlatform(handle: string): SocialLink["platform"] {
   const h = handle.toLowerCase();
@@ -68,17 +65,6 @@ function detectPlatform(handle: string): SocialLink["platform"] {
   if (h.includes("youtube.com") || h.includes("youtu.be")) return "youtube";
   if (h.includes("linktr.ee")) return "linktree";
   return "unknown";
-}
-
-function getIcon(platform: SocialLink["platform"]) {
-  switch (platform) {
-    case "twitter": return <FaTwitter />;
-    case "instagram": return <FaInstagram />;
-    case "tiktok": return <FaTiktok />;
-    case "youtube": return <FaYoutube />;
-    case "linktree": return <FaLink />;
-    default: return <FaLink />;
-  }
 }
 
 /* ------------------- Sortable Row ------------------- */
@@ -95,13 +81,15 @@ function SortableRow({
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: social.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
+  const Icon = ALL_PLATFORMS.find(p => p.name.toLowerCase() === social.platform)?.icon || null;
+
   return (
     <TableRow ref={setNodeRef} style={style}>
       <TableCell className="w-8 cursor-grab" {...attributes} {...listeners}>
         <GripVertical className="h-4 w-4" />
       </TableCell>
 
-      <TableCell>{getIcon(social.platform)}</TableCell>
+      <TableCell>{Icon && <Icon className="w-5 h-5" />}</TableCell>
 
       <TableCell>
         <Input
@@ -120,10 +108,6 @@ function SortableRow({
       </TableCell>
 
       <TableCell className="text-right">
-        <div className="flex flex-col text-right">
-          <span>{social.followers} followers</span>
-          <span>{social.comments} comments</span>
-        </div>
         <Button variant="ghost" size="icon" onClick={() => removeSocial(social.id)}>
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -215,11 +199,7 @@ export default function ConnectPageClient({
   /* ------------------- Save All ------------------- */
   const saveAll = async () => {
     startTransition(async () => {
-      const payload = socials.map((s, i) => ({
-        ...s,
-        platform: detectPlatform(s.handle),
-        order_index: i,
-      }));
+      const payload = socials.map((s, i) => ({ ...s, platform: detectPlatform(s.handle), order_index: i }));
       const { error } = await supabase.from("user_socials").upsert(payload, { onConflict: "id" });
       if (error) toast.error(error.message);
       else toast.success("All saved");
@@ -239,7 +219,6 @@ export default function ConnectPageClient({
     ];
 
     const withUserId = parsed.map((p, idx) => ({ ...p, user_id: userId, order_index: socials.length + idx }));
-
     const { error } = await supabase.from("user_socials").insert(withUserId);
     if (error) toast.error(error.message);
 
@@ -247,19 +226,18 @@ export default function ConnectPageClient({
     toast.success("Imported from Linktree");
   };
 
-  /* ------------------- Slideshow for Social Showcase ------------------- */
+  /* ------------------- Massive Centered Social Showcase ------------------- */
   useEffect(() => {
     const interval = setInterval(() => {
       setSlideIndex((prev) => (prev + 1) % socials.length);
-    }, 3500);
+    }, 3000);
     return () => clearInterval(interval);
   }, [socials.length]);
 
-  /* ------------------- Render ------------------- */
   return (
     <Card>
       <CardHeader><CardTitle>Connect Your Socials</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-8">
 
         {/* Linktree Input */}
         <div className="flex gap-2">
@@ -270,8 +248,8 @@ export default function ConnectPageClient({
             }}
           />
           <Button onClick={() => {
-            const el = document.querySelector<HTMLInputElement>("input[placeholder='Paste Linktree URL']");
-            if (el) handleLinktreeImport(el.value);
+            const el = document.querySelector<HTMLInputElement>("input[placeholder='Paste Linktree URL']")!;
+            handleLinktreeImport(el.value);
           }}>Import</Button>
         </div>
 
@@ -285,7 +263,7 @@ export default function ConnectPageClient({
                   <TableHead>Platform</TableHead>
                   <TableHead>Handle</TableHead>
                   <TableHead>Enabled</TableHead>
-                  <TableHead>Stats</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -302,26 +280,28 @@ export default function ConnectPageClient({
           <Button onClick={saveAll} disabled={isPending}>Save All</Button>
         </div>
 
-        {/* ------------------- Social Showcase Slideshow ------------------- */}
-        <div className="mt-8">
-          <h3 className="text-lg font-bold mb-4">Your Social Showcase</h3>
-          <div className="overflow-hidden relative">
-            <motion.div
-              className="flex gap-6"
-              animate={{ x: -slideIndex * 120 }}
-              transition={{ type: "spring", stiffness: 90 }}
-            >
-              {socials.map((s) => (
-                <motion.div key={s.id} className="flex flex-col items-center w-28 p-2 bg-white rounded shadow-lg">
-                  {getIcon(s.platform)}
-                  <span className="mt-2 font-semibold text-center">{s.handle}</span>
-                  <span className="text-sm text-gray-500 text-center">{s.followers} followers</span>
-                  <span className="text-sm text-gray-500 text-center">{s.comments} comments</span>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
+        {/* MASSIVE CENTERED ICON SHOWCASE */}
+        <section className="my-24 flex justify-center items-center overflow-hidden relative h-64">
+          <AnimatePresence initial={false}>
+            {socials.length > 0 && (
+              <motion.div
+                key={socials[slideIndex]?.id}
+                className="absolute flex justify-center items-center w-full h-full"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.8 }}
+              >
+                {(() => {
+                  const platform = ALL_PLATFORMS.find(p => p.name.toLowerCase() === socials[slideIndex].platform);
+                  if (!platform) return null;
+                  const Icon = platform.icon;
+                  return <Icon className="w-48 h-48 text-primary" />;
+                })()}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
 
       </CardContent>
     </Card>
