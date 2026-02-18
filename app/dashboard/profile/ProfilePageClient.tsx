@@ -138,16 +138,23 @@ export default function ProfilePageClient({
 
       if (profileError) throw profileError;
 
+      // ✅ FIXED UPSERT (no id, conflict on user_id + handle)
       for (const social of socials) {
         if (!social.handle) continue;
 
-        const { error } = await supabase.from("user_socials").upsert({
-          id: social.id,
-          user_id: userId,
-          handle: social.handle,
-          enabled: social.enabled,
-          linktree: social.linktree ?? false,
-        });
+        const { error } = await supabase
+          .from("user_socials")
+          .upsert(
+            {
+              user_id: userId,
+              handle: social.handle,
+              enabled: social.enabled,
+              linktree: social.linktree ?? false,
+            },
+            {
+              onConflict: "user_id,handle",
+            }
+          );
 
         if (error) throw error;
       }
@@ -266,9 +273,8 @@ export default function ProfilePageClient({
             {socials.map((s) => {
               const power = s.metrics?.power_level ?? 0;
 
-
               return (
-                <div key={s.id} className="flex items-center gap-3">
+                <div key={s.handle} className="flex items-center gap-3">
                   <span className="w-1/4">{s.handle}</span>
                   <progress
                     className="progress progress-accent w-3/4"
