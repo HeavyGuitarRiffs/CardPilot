@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { ALL_PLATFORMS } from "@/lib/platforms";
+import { motion } from "framer-motion";
 
 import {
   Card,
@@ -23,7 +23,8 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, GripVertical } from "lucide-react";
+import { ALL_PLATFORMS } from "@/lib/platforms";
 
 import {
   DndContext,
@@ -38,7 +39,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { motion } from "framer-motion";
 import type { SocialLink } from "./types";
 
 const supabase = getSupabaseBrowserClient();
@@ -68,7 +68,13 @@ function detectPlatform(handle: string): SocialLink["platform"] {
   return "unknown";
 }
 
+function getIcon(platform: SocialLink["platform"]) {
+  const p = ALL_PLATFORMS.find((x) => x.name.toLowerCase() === platform);
+  return p?.icon({ className: "w-16 h-16" }) ?? <span className="text-6xl">❓</span>;
+}
+
 /* ------------------- Sortable Row ------------------- */
+
 function SortableRow({
   social,
   updateSocial,
@@ -87,7 +93,13 @@ function SortableRow({
         <GripVertical className="h-4 w-4" />
       </TableCell>
 
-      <TableCell>{social.platform}</TableCell>
+      <TableCell>
+        <Input
+          value={social.platform}
+          placeholder="Platform Name"
+          onChange={(e) => updateSocial(social.id, "platform", e.target.value as SocialLink["platform"])}
+        />
+      </TableCell>
 
       <TableCell>
         <Input
@@ -110,15 +122,19 @@ function SortableRow({
           <span>{social.followers} followers</span>
           <span>{social.comments} comments</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => removeSocial(social.id)}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <button
+          className="text-red-500 font-bold ml-2"
+          onClick={() => removeSocial(social.id)}
+        >
+          ✕
+        </button>
       </TableCell>
     </TableRow>
   );
 }
 
 /* ------------------- Main Component ------------------- */
+
 export default function ConnectPageClient({
   initialSocials,
   userId,
@@ -148,8 +164,8 @@ export default function ConnectPageClient({
           handle: s.handle,
           platform: detectPlatform(s.handle),
           enabled: s.enabled,
-          followers: s.followers, // keep tracking
-          comments: s.comments,   // keep tracking
+          followers: s.followers,
+          comments: s.comments,
           linktree: s.linktree,
           order_index: updated.findIndex((x) => x.id === s.id),
         },
@@ -159,7 +175,7 @@ export default function ConnectPageClient({
     });
   };
 
-  /* ------------------- Add / Remove Social ------------------- */
+  /* ------------------- Add Social ------------------- */
   const addSocial = async () => {
     setAdding(true);
     const newSocial = createEmptySocial();
@@ -175,6 +191,7 @@ export default function ConnectPageClient({
     setAdding(false);
   };
 
+  /* ------------------- Remove Social ------------------- */
   const removeSocial = async (id: string) => {
     const { error } = await supabase.from("user_socials").delete().eq("id", id);
     if (error) toast.error(error.message);
@@ -214,6 +231,7 @@ export default function ConnectPageClient({
   /* ------------------- Linktree Import ------------------- */
   const handleLinktreeImport = async (url: string) => {
     if (!url.includes("linktr.ee")) return toast.error("Not a valid Linktree URL");
+
     const baseId = crypto.randomUUID();
     const parsed: SocialLink[] = [
       { id: `${baseId}-tw`, handle: "https://twitter.com/from_linktree", platform: "twitter", enabled: true, followers: 1200, comments: 30, linktree: true },
@@ -229,11 +247,11 @@ export default function ConnectPageClient({
     toast.success("Imported from Linktree");
   };
 
-  /* ------------------- Carousel / Massive Platform Icons ------------------- */
+  /* ------------------- Carousel Slideshow ------------------- */
   useEffect(() => {
     const interval = setInterval(() => {
       setSlideIndex((prev) => (prev + 1) % ALL_PLATFORMS.length);
-    }, 3000);
+    }, 3500);
     return () => clearInterval(interval);
   }, []);
 
@@ -241,7 +259,7 @@ export default function ConnectPageClient({
   return (
     <Card>
       <CardHeader><CardTitle>Connect Your Socials</CardTitle></CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
 
         {/* Linktree Input */}
         <div className="flex gap-2">
@@ -252,8 +270,8 @@ export default function ConnectPageClient({
             }}
           />
           <Button onClick={() => {
-            const el = document.querySelector<HTMLInputElement>("input[placeholder='Paste Linktree URL']")!;
-            handleLinktreeImport(el.value);
+            const el = document.querySelector<HTMLInputElement>("input[placeholder='Paste Linktree URL']");
+            if (el) handleLinktreeImport(el.value);
           }}>Import</Button>
         </div>
 
@@ -284,28 +302,30 @@ export default function ConnectPageClient({
           <Button onClick={saveAll} disabled={isPending}>Save All</Button>
         </div>
 
-        {/* Massive Icon Carousel */}
-        <div className="mt-12 flex flex-col items-center space-y-4">
-          <div className="overflow-hidden relative w-full flex justify-center">
+        {/* Social Icons Carousel */}
+        <div className="mt-12 text-center">
+          <h3 className="text-xl font-bold mb-4">Explore Platforms</h3>
+          <motion.div className="overflow-hidden relative w-full flex justify-center">
             <motion.div
-              className="flex gap-8"
-              animate={{ x: -slideIndex * 200 }}
-              transition={{ type: "spring", stiffness: 80 }}
+              className="flex gap-12"
+              animate={{ x: -slideIndex * 150 }}
+              transition={{ type: "spring", stiffness: 100 }}
             >
               {ALL_PLATFORMS.map((p) => (
-                <a
+                <motion.a
                   key={p.name}
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center w-40 h-40"
+                  className="flex flex-col items-center w-36 p-4 rounded-lg hover:scale-110 transition-transform"
                 >
-                  <p.icon className="w-24 h-24 text-primary opacity-80 hover:opacity-100 transition" />
-                  <p className="text-center mt-2 text-sm opacity-70">{p.desc}</p>
-                </a>
+                  <p.icon className="w-24 h-24 opacity-90" />
+                  <span className="mt-2 font-semibold text-center">{p.name}</span>
+                  <span className="text-sm text-gray-500 text-center">{p.desc}</span>
+                </motion.a>
               ))}
             </motion.div>
-          </div>
+          </motion.div>
         </div>
 
       </CardContent>
