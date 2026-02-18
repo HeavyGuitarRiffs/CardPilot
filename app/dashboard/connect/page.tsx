@@ -32,18 +32,11 @@ export default async function ConnectPage() {
       }))
     : [];
 
-  const initialEmail = user.email ?? "";
-  const initialEmailStatus = user.email_confirmed_at
-    ? "verified"
-    : "unverified";
-
-  // ✅ Pass userId to satisfy TypeScript
+  // ✅ Only pass the props ConnectPageClient expects
   return (
     <ConnectPageClient
       initialSocials={initialSocials}
-      initialEmail={initialEmail}
-      initialEmailStatus={initialEmailStatus}
-      userId={user.id} // <--- FIXED
+      userId={user.id}
     />
   );
 }
