@@ -53,11 +53,12 @@ function createEmptySocial(): SocialLink {
     platform: "unknown",
     enabled: true,
     followers: 0,
-    comments: 0,
+    comments: 0,   // now valid
     linktree: false,
     order_index: 0,
   };
 }
+
 
 function detectPlatform(handle: string): SocialLink["platform"] {
   const h = handle.toLowerCase();
