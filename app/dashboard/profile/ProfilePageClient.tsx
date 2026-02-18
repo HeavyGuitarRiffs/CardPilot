@@ -139,7 +139,7 @@ export default function ProfilePageClient({
 
       if (profileError) throw profileError;
 
-      // ✅ Ensure foreign key exists before upserting socials
+      // ✅ Ensure user_avatars FK exists for socials
       const { data: existingProfile } = await supabase
         .from("user_avatars")
         .select("user_id")
@@ -149,12 +149,19 @@ export default function ProfilePageClient({
       if (!existingProfile) {
         const { error: insertProfileError } = await supabase
           .from("user_avatars")
-          .insert({ user_id: userId });
+          .insert({
+            user_id: userId,
+            avatar_url: "",       // required field
+            display_name: null,
+            bio: null,
+            country: null,
+            social_archetype: null,
+          });
 
         if (insertProfileError) throw insertProfileError;
       }
 
-      // Upsert socials with FK-safe check
+      // Upsert socials safely with FK
       for (const social of socials) {
         if (!social.handle) continue;
 
