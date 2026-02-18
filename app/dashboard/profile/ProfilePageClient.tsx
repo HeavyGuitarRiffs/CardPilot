@@ -127,6 +127,7 @@ export default function ProfilePageClient({
         avatar_url = avatar;
       }
 
+      // Upsert user_avatars
       const { error: profileError } = await supabase.from("user_avatars").upsert({
         user_id: userId,
         avatar_url,
@@ -138,7 +139,22 @@ export default function ProfilePageClient({
 
       if (profileError) throw profileError;
 
-      // ✅ FIXED UPSERT (no id, conflict on user_id + handle)
+      // ✅ Ensure foreign key exists before upserting socials
+      const { data: existingProfile } = await supabase
+        .from("user_avatars")
+        .select("user_id")
+        .eq("user_id", userId)
+        .single();
+
+      if (!existingProfile) {
+        const { error: insertProfileError } = await supabase
+          .from("user_avatars")
+          .insert({ user_id: userId });
+
+        if (insertProfileError) throw insertProfileError;
+      }
+
+      // Upsert socials with FK-safe check
       for (const social of socials) {
         if (!social.handle) continue;
 
