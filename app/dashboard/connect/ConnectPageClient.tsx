@@ -58,13 +58,13 @@ function createEmptySocial(): SocialLink {
   };
 }
 
-function detectPlatform(handle: string): SocialLink["platform"] {
-  const h = handle.toLowerCase();
-  if (h.includes("twitter.com") || h.includes("x.com")) return "twitter";
-  if (h.includes("instagram.com")) return "instagram";
-  if (h.includes("tiktok.com")) return "tiktok";
-  if (h.includes("youtube.com") || h.includes("youtu.be")) return "youtube";
-  if (h.includes("linktr.ee")) return "linktree";
+function detectPlatformFromUrl(url: string): SocialLink["platform"] {
+  const u = url.toLowerCase();
+  if (u.includes("twitter.com") || u.includes("x.com")) return "twitter";
+  if (u.includes("instagram.com")) return "instagram";
+  if (u.includes("tiktok.com")) return "tiktok";
+  if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
+  if (u.includes("linktr.ee")) return "linktree";
   return "unknown";
 }
 
@@ -81,10 +81,15 @@ function SortableRow({
   removeSocial,
 }: {
   social: SocialLink;
-  updateSocial: <K extends keyof SocialLink>(id: string, key: K, value: SocialLink[K]) => void;
+  updateSocial: <K extends keyof SocialLink>(
+    id: string,
+    key: K,
+    value: SocialLink[K]
+  ) => void;
   removeSocial: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: social.id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: social.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
   return (
@@ -97,7 +102,13 @@ function SortableRow({
         <Input
           value={social.platform}
           placeholder="Platform Name"
-          onChange={(e) => updateSocial(social.id, "platform", e.target.value as SocialLink["platform"])}
+          onChange={(e) =>
+            updateSocial(
+              social.id,
+              "platform",
+              e.target.value as SocialLink["platform"]
+            )
+          }
         />
       </TableCell>
 
@@ -105,7 +116,14 @@ function SortableRow({
         <Input
           value={social.handle}
           placeholder="e.g., youtube.com/example"
-          onChange={(e) => updateSocial(social.id, "handle", e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            updateSocial(social.id, "handle", value);
+
+            // 🔥 auto detect platform + logo
+            const detected = detectPlatformFromUrl(value);
+            updateSocial(social.id, "platform", detected);
+          }}
         />
       </TableCell>
 
@@ -113,7 +131,9 @@ function SortableRow({
         <input
           type="checkbox"
           checked={social.enabled}
-          onChange={(e) => updateSocial(social.id, "enabled", e.target.checked)}
+          onChange={(e) =>
+            updateSocial(social.id, "enabled", e.target.checked)
+          }
         />
       </TableCell>
 
@@ -122,9 +142,10 @@ function SortableRow({
           <span>{social.followers} followers</span>
           <span>{social.comments} comments</span>
         </div>
+
         <button
-          className="text-red-500 font-bold ml-2"
           onClick={() => removeSocial(social.id)}
+          className="text-red-500 font-bold text-lg px-2"
         >
           ✕
         </button>
@@ -148,9 +169,14 @@ export default function ConnectPageClient({
   const [adding, setAdding] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
 
-  /* ------------------- Update Social ------------------- */
-  const updateSocial = <K extends keyof SocialLink>(id: string, key: K, value: SocialLink[K]) => {
-    const updated = socials.map((s) => (s.id === id ? { ...s, [key]: value } : s));
+  const updateSocial = <K extends keyof SocialLink>(
+    id: string,
+    key: K,
+    value: SocialLink[K]
+  ) => {
+    const updated = socials.map((s) =>
+      s.id === id ? { ...s, [key]: value } : s
+    );
     setSocials(updated);
 
     const s = updated.find((x) => x.id === id);
@@ -162,7 +188,7 @@ export default function ConnectPageClient({
           id: s.id,
           user_id: userId,
           handle: s.handle,
-          platform: detectPlatform(s.handle),
+          platform: s.platform,
           enabled: s.enabled,
           followers: s.followers,
           comments: s.comments,
@@ -175,7 +201,6 @@ export default function ConnectPageClient({
     });
   };
 
-  /* ------------------- Add Social ------------------- */
   const addSocial = async () => {
     setAdding(true);
     const newSocial = createEmptySocial();
@@ -191,14 +216,15 @@ export default function ConnectPageClient({
     setAdding(false);
   };
 
-  /* ------------------- Remove Social ------------------- */
   const removeSocial = async (id: string) => {
-    const { error } = await supabase.from("user_socials").delete().eq("id", id);
+    const { error } = await supabase
+      .from("user_socials")
+      .delete()
+      .eq("id", id);
     if (error) toast.error(error.message);
     setSocials((prev) => prev.filter((s) => s.id !== id));
   };
 
-  /* ------------------- Drag & Reorder ------------------- */
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -209,45 +235,54 @@ export default function ConnectPageClient({
     setSocials(reordered);
 
     const payload = reordered.map((s, i) => ({ ...s, order_index: i }));
-    const { error } = await supabase.from("user_socials").upsert(payload, { onConflict: "id" });
-    if (error) toast.error(error.message);
+    await supabase.from("user_socials").upsert(payload, {
+      onConflict: "id",
+    });
   };
 
-  /* ------------------- Save All ------------------- */
   const saveAll = async () => {
     startTransition(async () => {
       const payload = socials.map((s, i) => ({
         ...s,
-        platform: detectPlatform(s.handle),
         order_index: i,
       }));
-      const { error } = await supabase.from("user_socials").upsert(payload, { onConflict: "id" });
-      if (error) toast.error(error.message);
-      else toast.success("All saved");
+      await supabase.from("user_socials").upsert(payload, {
+        onConflict: "id",
+      });
+      toast.success("All saved");
       router.refresh();
     });
   };
 
-  /* ------------------- Linktree Import ------------------- */
   const handleLinktreeImport = async (url: string) => {
-    if (!url.includes("linktr.ee")) return toast.error("Not a valid Linktree URL");
+    if (!url.includes("linktr.ee"))
+      return toast.error("Not a valid Linktree URL");
 
     const baseId = crypto.randomUUID();
     const parsed: SocialLink[] = [
-      { id: `${baseId}-tw`, handle: "https://twitter.com/from_linktree", platform: "twitter", enabled: true, followers: 1200, comments: 30, linktree: true },
-      { id: `${baseId}-ig`, handle: "https://instagram.com/from_linktree", platform: "instagram", enabled: true, followers: 980, comments: 25, linktree: true },
-      { id: `${baseId}-yt`, handle: "https://youtube.com/@from_linktree", platform: "youtube", enabled: true, followers: 4300, comments: 120, linktree: true },
+      {
+        id: `${baseId}-yt`,
+        handle: "https://youtube.com/@from_linktree",
+        platform: "youtube",
+        enabled: true,
+        followers: 4300,
+        comments: 120,
+        linktree: true,
+        order_index: socials.length,
+      },
     ];
 
-    const withUserId = parsed.map((p, idx) => ({ ...p, user_id: userId, order_index: socials.length + idx }));
-    const { error } = await supabase.from("user_socials").insert(withUserId);
-    if (error) toast.error(error.message);
+    await supabase.from("user_socials").insert(
+      parsed.map((p) => ({
+        ...p,
+        user_id: userId,
+      }))
+    );
 
     setSocials((prev) => [...prev, ...parsed]);
     toast.success("Imported from Linktree");
   };
 
-  /* ------------------- Carousel Slideshow ------------------- */
   useEffect(() => {
     const interval = setInterval(() => {
       setSlideIndex((prev) => (prev + 1) % ALL_PLATFORMS.length);
@@ -255,33 +290,37 @@ export default function ConnectPageClient({
     return () => clearInterval(interval);
   }, []);
 
-  /* ------------------- Render ------------------- */
   return (
     <Card>
-      <CardHeader><CardTitle>Connect Your Socials</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
+      <CardHeader>
+        <CardTitle>Connect Your Socials</CardTitle>
+      </CardHeader>
 
-        {/* Linktree Input */}
+      <CardContent className="space-y-4">
+        {/* LINKTREE */}
         <div className="flex gap-2">
           <Input
             placeholder="Paste Linktree URL"
             onKeyDown={async (e) => {
-              if (e.key === "Enter") await handleLinktreeImport((e.target as HTMLInputElement).value);
+              if (e.key === "Enter")
+                await handleLinktreeImport(
+                  (e.target as HTMLInputElement).value
+                );
             }}
           />
-          <Button onClick={() => {
-            const el = document.querySelector<HTMLInputElement>("input[placeholder='Paste Linktree URL']");
-            if (el) handleLinktreeImport(el.value);
-          }}>Import</Button>
+          <Button>Import</Button>
         </div>
 
-        {/* Socials Table */}
+        {/* TABLE */}
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={socials.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={socials.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead></TableHead>
+                  <TableHead />
                   <TableHead>Platform</TableHead>
                   <TableHead>Handle</TableHead>
                   <TableHead>Enabled</TableHead>
@@ -290,7 +329,12 @@ export default function ConnectPageClient({
               </TableHeader>
               <TableBody>
                 {socials.map((s) => (
-                  <SortableRow key={s.id} social={s} updateSocial={updateSocial} removeSocial={removeSocial} />
+                  <SortableRow
+                    key={s.id}
+                    social={s}
+                    updateSocial={updateSocial}
+                    removeSocial={removeSocial}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -298,36 +342,42 @@ export default function ConnectPageClient({
         </DndContext>
 
         <div className="flex gap-2">
-          <Button onClick={addSocial} disabled={adding}><Plus className="h-4 w-4 mr-2" />Add Social</Button>
-          <Button onClick={saveAll} disabled={isPending}>Save All</Button>
+          <Button onClick={addSocial}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Social
+          </Button>
+          <Button onClick={saveAll} disabled={isPending}>
+            Save All
+          </Button>
         </div>
 
-        {/* Social Icons Carousel */}
+        {/* PLATFORM CAROUSEL */}
         <div className="mt-12 text-center">
           <h3 className="text-xl font-bold mb-4">Explore Platforms</h3>
-          <motion.div className="overflow-hidden relative w-full flex justify-center">
+
+          <motion.div className="overflow-hidden flex justify-center">
             <motion.div
-              className="flex gap-12"
-              animate={{ x: -slideIndex * 150 }}
-              transition={{ type: "spring", stiffness: 100 }}
+              className="flex gap-16"
+              animate={{ x: -slideIndex * 180 }}
+              transition={{ type: "spring", stiffness: 90 }}
             >
               {ALL_PLATFORMS.map((p) => (
                 <motion.a
                   key={p.name}
                   href={p.url}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center w-36 p-4 rounded-lg hover:scale-110 transition-transform"
+                  className="flex flex-col items-center w-44"
                 >
-                  <p.icon className="w-24 h-24 opacity-90" />
-                  <span className="mt-2 font-semibold text-center">{p.name}</span>
-                  <span className="text-sm text-gray-500 text-center">{p.desc}</span>
+                  <p.icon className="w-28 h-28 opacity-90" />
+                  <div className="font-semibold text-lg mt-2">{p.name}</div>
+                  <div className="text-sm opacity-70 text-center">
+                    {p.desc}
+                  </div>
                 </motion.a>
               ))}
             </motion.div>
           </motion.div>
         </div>
-
       </CardContent>
     </Card>
   );
