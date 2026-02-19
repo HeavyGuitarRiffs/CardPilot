@@ -38,11 +38,8 @@ type ChartProps = {
 
 type DailyRow = {
   date: string;
-  followers: number | null;
-  user_social_id: string;
-  user_socials: {
-    platform: string;
-  };
+  followers: number;
+  platform: string;
 };
 
 type GrowthRow = {
@@ -63,7 +60,6 @@ export function GrowthChart({ range, platforms }: ChartProps) {
   const [timeRange, setTimeRange] = React.useState<DateRangeValue>(range);
   const [selectedPlatforms, setSelectedPlatforms] =
     React.useState<string[]>(platforms);
-
   const [data, setData] = React.useState<GrowthRow[]>([]);
 
   React.useEffect(() => {
@@ -73,33 +69,58 @@ export function GrowthChart({ range, platforms }: ChartProps) {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // JOIN user_socials to get platform
-      const { data: daily, error } = await supabase
-        .from("social_daily_stats")
-        .select(`
+      const { data: rows, error } = await supabase
+        .from("social_metrics_daily_v2")
+        .select(
+          `
           date,
           followers,
-          user_social_id,
-          user_socials!inner (
+          social_accounts (
             platform
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
-        .in("user_socials.platform", selectedPlatforms)
         .order("date", { ascending: true });
 
-      if (!daily || error) return;
+      if (error) {
+        console.error("Error fetching social daily stats:", error);
+        return;
+      }
 
-      // Group totals by date
+      // 🔐 strongly typed join result
+      type SocialMetricsWithPlatform =
+        Database["public"]["Tables"]["social_metrics_daily_v2"]["Row"] & {
+          social_accounts: {
+            platform: string;
+          } | null;
+        };
+
+     type FollowerHistoryRow = {
+  date: string;
+  followers: number | null;
+  social_accounts: {
+    platform: string;
+  } | null;
+};
+
+const typedRows = (rows ?? []) as FollowerHistoryRow[];
+
+const dailyRows: DailyRow[] = typedRows
+  .map((row) => ({
+    date: row.date,
+    followers: row.followers ?? 0,
+    platform: row.social_accounts?.platform ?? "unknown",
+  }))
+  .filter((r) => selectedPlatforms.includes(r.platform));
+
+      // Aggregate followers per day across platforms
       const totals: Record<string, number> = {};
-
-      (daily as DailyRow[]).forEach((row) => {
-        const date = row.date;
-        const followers = row.followers ?? 0;
-        totals[date] = (totals[date] ?? 0) + followers;
+      dailyRows.forEach((row) => {
+        totals[row.date] = (totals[row.date] ?? 0) + row.followers;
       });
 
-      // Convert to sorted array
+      // Sort by date
       const sorted = Object.entries(totals)
         .map(([date, followers]) => ({ date, followers }))
         .sort(
@@ -107,13 +128,11 @@ export function GrowthChart({ range, platforms }: ChartProps) {
             new Date(a.date).getTime() - new Date(b.date).getTime()
         );
 
-      // Compute daily growth delta
+      // Calculate day-to-day growth
       const growthData: GrowthRow[] = [];
-
       for (let i = 1; i < sorted.length; i++) {
         const prev = sorted[i - 1].followers;
         const curr = sorted[i].followers;
-
         growthData.push({
           date: sorted[i].date,
           growth: curr - prev,
@@ -126,7 +145,6 @@ export function GrowthChart({ range, platforms }: ChartProps) {
     load();
   }, [supabase, selectedPlatforms, range]);
 
-  // Filter by time range
   const filteredData = React.useMemo(() => {
     if (!data.length) return [];
 
@@ -174,9 +192,9 @@ export function GrowthChart({ range, platforms }: ChartProps) {
             <SelectValue placeholder="Last 3 months" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            <SelectItem value="90d">Last 3 months</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
             <SelectItem value="7d">Last 7 days</SelectItem>
+            <SelectItem value="30d">Last 30 days</SelectItem>
+            <SelectItem value="90d">Last 3 months</SelectItem>
             <SelectItem value="180d">Last 6 months</SelectItem>
             <SelectItem value="365d">Last year</SelectItem>
           </SelectContent>
