@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Card,
@@ -22,9 +22,21 @@ import DailyChallengeCard from "@/components/dashboard/DailyChallengeCard";
 import HighlightedComments from "@/components/dashboard/HighlightedComments";
 
 import { MetricChart } from "@/components/charts/MetricChart";
-import type { MetricConfig } from "@/app/dashboard/types"; // shared type
+import type { MetricConfig } from "@/app/dashboard/types";
 
-// -------------------- Metrics Definitions --------------------
+// ✅ Socials
+import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarousel";
+import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
+import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
+import type { SocialMetric } from "@/app/dashboard/types/social";
+
+// ✅ Supabase
+import { createClient } from "@/lib/supabase/client";
+import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
+
+const supabase = createClient();
+
+// -------------------- Metrics --------------------
 const METRICS: MetricConfig[] = [
   { key: "commentsToday", label: "Comments Today", value: 42, description: "Number of comments you replied to today." },
   { key: "commentsWeek", label: "This Week", value: 312, description: "Total comments replied to this week." },
@@ -55,10 +67,9 @@ const MOMENTUM_METRIC: MetricConfig = {
   description: "Engagement velocity compared to last week.",
 };
 
-// -------------------- Chart Type --------------------
+// -------------------- Chart Types --------------------
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
 
-// -------------------- Chart Switcher --------------------
 function ChartSwitcher({
   chartType,
   onChange,
@@ -103,7 +114,6 @@ function MetricDrawer({ metric }: { metric: MetricConfig }) {
             <p className="text-sm text-muted-foreground">{metric.label}</p>
           </CardContent>
         </Card>
-        
       </DrawerTrigger>
 
       <DrawerContent className="max-h-[90vh]">
@@ -114,21 +124,54 @@ function MetricDrawer({ metric }: { metric: MetricConfig }) {
 
         <div className="px-6 pb-6 space-y-4">
           <ChartSwitcher chartType={chartType} onChange={setChartType} />
-          <MetricChart
-            metric={metric}      // ✅ TS-safe, userId inside metric
-            chartType={chartType}
-          />
+          <MetricChart metric={metric} chartType={chartType} />
         </div>
       </DrawerContent>
     </Drawer>
   );
 }
 
-// -------------------- Dashboard Page --------------------
+// -------------------- Dashboard --------------------
 export default function DashboardPage() {
+  const [socials, setSocials] = useState<SocialMetric[]>([]);
+  const [selectedSocial, setSelectedSocial] = useState<SocialMetric | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadSocials() {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) return;
+
+      const data = await fetchUserSocials(user.data.user.id);
+      setSocials(data);
+    }
+
+    loadSocials();
+  }, []);
+
   return (
     <main className="min-h-screen bg-background px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-10">
+
+        {/* SOCIAL TICKER */}
+        <SocialTickerCarousel socials={socials} />
+
+        {/* SOCIAL GRID */}
+        <SocialCardGrid
+          socials={socials}
+          onSelect={(platform) => {
+            const found = socials.find((s) => s.platform === platform) || null;
+            setSelectedSocial(found);
+            setDrawerOpen(true);
+          }}
+        />
+
+        {/* SOCIAL ANALYTICS DRAWER */}
+        <SocialAnalyticsDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          social={selectedSocial}
+        />
 
         {/* METRICS GRID */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -142,10 +185,7 @@ export default function DashboardPage() {
 
         {/* HIGHLIGHTED COMMENTS */}
         <HighlightedComments
-          initialComments={[
-            "This is a great post!",
-            "Love this insight.",
-          ]}
+          initialComments={["This is a great post!", "Love this insight."]}
         />
 
         {/* MOMENTUM METRIC */}
@@ -154,3 +194,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+
