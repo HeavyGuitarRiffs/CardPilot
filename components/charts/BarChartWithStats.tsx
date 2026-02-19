@@ -1,5 +1,3 @@
-//components\charts\BarChartWithStats.tsx
-
 "use client";
 
 import React from "react";
@@ -11,22 +9,26 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
-
-import { TimeSeriesPoint } from "./MetricChart";
 import { ChartLegend } from "./ChartLegend";
 import { ChartStats } from "./ChartStats";
 import { useTheme } from "next-themes";
+
+/* -------------------- Types -------------------- */
+type TimeSeriesPoint = {
+  date: string;
+  value: number;
+};
 
 type Props = {
   data: TimeSeriesPoint[];
   metricLabel: string;
 };
 
+/* -------------------- Component -------------------- */
 export function BarChartWithStats({ data, metricLabel }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  // Theme-aware colors
   const textColor = isDark ? "#ffffff" : "#0B1020";
   const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
   const tooltipBg = isDark ? "#0F172A" : "#ffffff";
@@ -34,7 +36,6 @@ export function BarChartWithStats({ data, metricLabel }: Props) {
 
   return (
     <div className="w-full h-full flex flex-col gap-6">
-
       {/* Chart */}
       <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -50,11 +51,7 @@ export function BarChartWithStats({ data, metricLabel }: Props) {
               }}
               labelStyle={{ color: tooltipText }}
             />
-            <Bar
-              dataKey="value"
-              fill="#22C55E"
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar dataKey="value" fill="#22C55E" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -64,7 +61,6 @@ export function BarChartWithStats({ data, metricLabel }: Props) {
         <ChartLegend data={data} label={metricLabel} />
         <ChartStats data={data} />
       </div>
-
     </div>
   );
 }

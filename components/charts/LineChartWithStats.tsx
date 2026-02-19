@@ -9,10 +9,15 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TimeSeriesPoint } from "./MetricChart";
 import { ChartLegend } from "./ChartLegend";
 import { ChartStats } from "./ChartStats";
 import { useTheme } from "next-themes";
+
+/* -------------------- Types -------------------- */
+export type TimeSeriesPoint = {
+  date: string;
+  value: number;
+};
 
 type Props = {
   data: TimeSeriesPoint[];
@@ -20,6 +25,7 @@ type Props = {
   variant?: "line" | "area";
 };
 
+/* -------------------- Component -------------------- */
 export function LineChartWithStats({ data, metricLabel, variant = "line" }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -30,7 +36,7 @@ export function LineChartWithStats({ data, metricLabel, variant = "line" }: Prop
   const tooltipBg = isDark ? "#0F172A" : "#ffffff";
   const tooltipText = isDark ? "#ffffff" : "#0B1020";
 
-  // Smart number formatter (same as ChartStats + ShareButton)
+  // Smart number formatter (same as all charts)
   function formatNumber(n: number) {
     if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";

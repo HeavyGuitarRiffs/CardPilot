@@ -6,13 +6,15 @@ import { Share2 } from "lucide-react";
 import type { MetricConfig } from "@/app/dashboard/types";
 import { toast } from "sonner";
 
+/* -------------------- Props -------------------- */
 type Props = {
   targetRef: React.RefObject<HTMLDivElement | null>;
-  metric: MetricConfig;
+  metric: MetricConfig & { value?: number; rangeLabel?: string }; // <-- extended for TS
 };
 
+/* -------------------- Component -------------------- */
 export function ChartShareButton({ targetRef, metric }: Props) {
-  // Smart formatter (same logic as your charts)
+  // -------------------- Formatter --------------------
   function formatNumber(n: number) {
     if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
@@ -22,17 +24,13 @@ export function ChartShareButton({ targetRef, metric }: Props) {
     return n.toString();
   }
 
+  // -------------------- Share Handler --------------------
   async function handleShare() {
-    // Convert to number to satisfy TypeScript
-    const numericValue = Number(metric.value);
+    const numericValue = Number(metric.value ?? 0);
     const formattedValue = formatNumber(numericValue);
 
-    const shareUrl =
-      typeof window !== "undefined" ? window.location.href : "";
-
-    // Safe fallback if rangeLabel doesn't exist
-    const rangeLabel =
-      (metric as any).rangeLabel ?? "Last period";
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const rangeLabel = metric.rangeLabel ?? "Last period";
 
     const shareText = `My ${metric.label} (${rangeLabel}) on Social Like: ${formattedValue}\n#SocialLikeAnalytics`;
 
@@ -56,6 +54,7 @@ export function ChartShareButton({ targetRef, metric }: Props) {
     }
   }
 
+  // -------------------- Render --------------------
   return (
     <Button
       variant="outline"

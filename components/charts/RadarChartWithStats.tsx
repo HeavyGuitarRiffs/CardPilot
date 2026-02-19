@@ -1,3 +1,4 @@
+// components/charts/RadarChartWithStats.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -12,6 +13,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "next-themes";
+import type { Database } from "@/supabase/types"; // your current path
 
 /* -------------------- Types -------------------- */
 type SocialMetrics = {
@@ -27,15 +29,25 @@ type RadarPoint = {
 };
 
 type Props = {
-  userId?: string;
+  userId: string;
 };
 
 type MetricsBySocial = Record<string, SocialMetrics>;
 
+// Row type for Supabase (matches your table)
+type V2SocialMetricsRow = {
+  account_id: string | null;
+  posts: number | null;
+  followers: number | null;
+  comments: number | null;
+  likes: number | null;
+};
+
+/* -------------------- Constants -------------------- */
 const AXES: (keyof SocialMetrics)[] = ["posts", "followers", "comments", "likes"];
 const SCALE_OPTIONS = [10, 100, 1000, 10000, 100000, 1000000];
 
-/* -------------------- Formatter -------------------- */
+/* -------------------- Helpers -------------------- */
 function formatNumber(n: number) {
   if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
@@ -68,31 +80,28 @@ export function RadarChartWithStats({ userId }: Props) {
 
   const supabase = createClient();
 
+  /* -------------------- Fetch Live Data -------------------- */
   useEffect(() => {
     if (!userId) return;
 
     async function load() {
-      // -------------------- Fetch latest metrics --------------------
       const { data, error } = await supabase
-        .from("social_metrics_daily") // remove generic
-        .select("account_id, posts_count, comments_count, likes_count, followers")
-        .eq("user_id", userId)
-        .order("date", { ascending: false });
+        .from("social_metrics_daily_v2")
+        .select("account_id, posts, followers, comments, likes")
+        .eq("user_id", userId);
 
       if (error || !data) return;
 
       const map: MetricsBySocial = {};
 
-      data.forEach((row: any) => {
-        const key = row.account_id;
-        if (!map[key]) {
-          map[key] = {
-            posts: row.posts_count ?? 0,
-            followers: row.followers ?? 0,
-            comments: row.comments_count ?? 0,
-            likes: row.likes_count ?? 0,
-          };
-        }
+      (data as V2SocialMetricsRow[]).forEach((row) => {
+        if (!row.account_id) return;
+        map[row.account_id] = {
+          posts: row.posts ?? 0,
+          followers: row.followers ?? 0,
+          comments: row.comments ?? 0,
+          likes: row.likes ?? 0,
+        };
       });
 
       setMetricsBySocial(map);
@@ -101,11 +110,12 @@ export function RadarChartWithStats({ userId }: Props) {
     load();
   }, [userId, supabase]);
 
+  /* -------------------- Build Radar Data -------------------- */
   const radarData: RadarPoint[] = useMemo(() => {
     const build = (metrics: SocialMetrics) =>
       AXES.map((axis) => ({
         metric: axis.charAt(0).toUpperCase() + axis.slice(1),
-        score: isolatedAxis && isolatedAxis !== axis ? 0 : Math.min(metrics[axis] ?? 0, scale),
+        score: isolatedAxis && isolatedAxis !== axis ? 0 : Math.min(metrics[axis], scale),
       }));
 
     if (!Object.keys(metricsBySocial).length) {
@@ -128,8 +138,10 @@ export function RadarChartWithStats({ userId }: Props) {
     [radarData]
   );
 
+  /* -------------------- Render -------------------- */
   return (
     <div className="space-y-4">
+      {/* Scale buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
         {SCALE_OPTIONS.map((s) => (
           <button
@@ -144,6 +156,7 @@ export function RadarChartWithStats({ userId }: Props) {
         ))}
       </div>
 
+      {/* Axis buttons */}
       <div className="grid grid-cols-4 gap-2">
         {AXES.map((axis, i) => {
           const value = radarData[i]?.score ?? 0;
@@ -162,6 +175,7 @@ export function RadarChartWithStats({ userId }: Props) {
         })}
       </div>
 
+      {/* Radar chart */}
       <div className="w-full h-64">
         <ResponsiveContainer>
           <RadarChart data={radarData}>

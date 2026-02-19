@@ -1,26 +1,30 @@
 "use client";
 
 import React from "react";
-import { TimeSeriesPoint } from "./MetricChart";
 import { useTheme } from "next-themes";
+
+/* -------------------- Types -------------------- */
+type TimeSeriesPoint = {
+  date: string;
+  value: number;
+};
 
 type Props = {
   data: TimeSeriesPoint[];
   label: string;
 };
 
+/* -------------------- Component -------------------- */
 export function ChartLegend({ data, label }: Props) {
-  const { theme } = useTheme(); // <-- moved above conditional
+  const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  if (!data.length) return null; // <-- now safe
+  if (!data.length) return null;
 
   const last = data[data.length - 1];
   const prev = data[data.length - 2] ?? last;
 
-  const pct =
-    prev.value === 0 ? 0 : ((last.value - prev.value) / prev.value) * 100;
-
+  const pct = prev.value === 0 ? 0 : ((last.value - prev.value) / prev.value) * 100;
   const isUp = pct > 0;
   const isDown = pct < 0;
 
@@ -31,9 +35,7 @@ export function ChartLegend({ data, label }: Props) {
     followers: "#F59E0B",
   };
 
-  const metricColor =
-    metricColors[label.toLowerCase()] ?? (isUp ? "#22C55E" : "#F43F5E");
-
+  const metricColor = metricColors[label.toLowerCase()] ?? (isUp ? "#22C55E" : "#F43F5E");
   const arrow = isUp ? "▲" : isDown ? "▼" : "→";
 
   function formatNumber(n: number) {

@@ -10,21 +10,26 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { TimeSeriesPoint } from "./MetricChart";
 import { ChartLegend } from "./ChartLegend";
 import { ChartStats } from "./ChartStats";
 import { useTheme } from "next-themes";
+
+/* -------------------- Types -------------------- */
+type TimeSeriesPoint = {
+  date: string;
+  value: number;
+};
 
 type Props = {
   data: TimeSeriesPoint[];
   metricLabel: string;
 };
 
+/* -------------------- Component -------------------- */
 export function AreaChartWithStats({ data, metricLabel }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  // Unified theme tokens
   const textColor = isDark ? "#ffffff" : "#0B1020";
   const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const tooltipBg = isDark ? "#0F172A" : "#ffffff";
