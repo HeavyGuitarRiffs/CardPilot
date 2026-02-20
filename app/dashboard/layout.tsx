@@ -1,4 +1,4 @@
-//app\dashboard\layout.tsx
+//app\dashboard\layout.tsx// app/dashboard/layout.tsx
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -15,7 +15,6 @@ export default async function DashboardLayout({
 }) {
   const supabase = createSupabaseServerClient();
 
-  // Get session
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -24,7 +23,6 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Fetch user plan
   const { data: userPlan } = await supabase
     .from("user_plans")
     .select("plan_id")
@@ -33,7 +31,6 @@ export default async function DashboardLayout({
 
   const planId = userPlan?.plan_id || "free";
 
-  // Fetch plan details
   const { data: plan } = await supabase
     .from("plans")
     .select("id, name")
@@ -42,15 +39,11 @@ export default async function DashboardLayout({
 
   const planName = plan?.name || "Free";
 
-  // ⭐ No headers(), no get(), no errors
-  const pathname = "/dashboard";
-
   return (
     <div className="min-h-screen flex bg-base-100 text-base-content">
       <DashboardOverlayLoader />
       <TopLoader />
 
-      {/* Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-base-200 p-6 gap-6">
         <h2 className="text-xl font-bold">Dashboard</h2>
         <p className="text-sm opacity-70">Plan: {planName}</p>
@@ -68,9 +61,8 @@ export default async function DashboardLayout({
         </nav>
       </aside>
 
-      {/* Page Content + Transition */}
       <main className="flex-1 p-6">
-        <DashboardTransition pathname={pathname}>
+        <DashboardTransition>
           {children}
         </DashboardTransition>
       </main>

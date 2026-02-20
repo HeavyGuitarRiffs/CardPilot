@@ -1,17 +1,12 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-interface DashboardTransitionProps {
-  pathname: string;
-  children: ReactNode;
-}
+export default function DashboardTransition({ children }: { children: ReactNode }) {
+  const pathname = usePathname(); // ⭐ stable, client-side, correct
 
-export default function DashboardTransition({
-  pathname,
-  children,
-}: DashboardTransitionProps) {
   return (
     <AnimatePresence mode="wait">
       <motion.div
