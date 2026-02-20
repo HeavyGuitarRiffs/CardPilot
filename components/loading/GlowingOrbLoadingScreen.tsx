@@ -114,4 +114,4 @@ export default function GlowingOrbLoadingScreen() {
 
 function shuffle(arr: string[]) {
   return [...arr].sort(() => Math.random() - 0.5);
-}
+}//components\loading\GlowingOrbLoadingScreen.tsx
