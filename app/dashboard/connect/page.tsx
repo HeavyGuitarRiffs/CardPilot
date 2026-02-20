@@ -25,12 +25,15 @@ export default async function ConnectPage() {
   handle: s.handle ?? "",
   enabled: s.enabled ?? true,
   platform: (s.platform as SocialLink["platform"]) ?? "unknown",
-  followers: ("followers" in s && typeof s.followers === "number" ? s.followers : 0),
-  comments: ("comments" in s && typeof s.comments === "number" ? s.comments : 0),
+
+  followers: typeof s.followers === "number" ? s.followers : 0,
+  comments: typeof s.comments === "number" ? s.comments : 0,
+
   linktree: s.linktree ?? false,
-  order_index: ("order_index" in s && typeof s.order_index === "number" ? s.order_index : idx),
-  created_at: s.created_at ?? undefined,
-  user_id: s.user_id ?? undefined,
+  order_index: typeof s.order_index === "number" ? s.order_index : idx,
+
+  created_at: s.created_at ?? null,
+  user_id: s.user_id ?? null,
 }));
 
 

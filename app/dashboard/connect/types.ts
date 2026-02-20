@@ -20,7 +20,7 @@ export type SocialLink = {
 
   linktree: boolean;
   order_index?: number;
-  created_at?: string;
+  created_at: string | null;
 };
 
 
