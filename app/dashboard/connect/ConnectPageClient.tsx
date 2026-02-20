@@ -285,16 +285,17 @@ export default function ConnectPageClient({
 
     startTransition(async () => {
       const payload = socials.map((s, i) => ({
-        id: s.id,
-        user_id: userId,
-        handle: s.handle,
-        platform: s.platform,
-        enabled: s.enabled,
-        followers: s.followers,
-        comments: s.comments,
-        linktree: s.linktree,
-        order_index: i,
-      }));
+  id: s.id,
+  user_id: userId,
+  handle: s.handle,
+  platform: s.platform,
+  enabled: s.enabled,
+  followers: s.followers,
+  comments: s.comments,
+  linktree: s.linktree,
+  order_index: i,
+  created_at: s.created_at ?? null, // ✅ REQUIRED
+}));
 
       const { error } = await supabase
         .from("user_socials")
