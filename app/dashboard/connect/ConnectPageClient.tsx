@@ -1,12 +1,9 @@
-//app\dashboard\connect\ConnectPageClient.tsx
-
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { motion } from "framer-motion";
 
 import {
   Card,
@@ -43,9 +40,6 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { SocialLink } from "./types";
 
-// ⭐ static import
-import AnalyticsLoadingScreen from "@/components/loading/AnalyticsLoadingScreen";
-
 const supabase = getSupabaseBrowserClient();
 
 /* ------------------- Helpers ------------------- */
@@ -61,7 +55,7 @@ function createEmptySocial(): SocialLink {
     weeklyGrowthPct: undefined,
     linktree: false,
     order_index: 0,
-    created_at: null, // ✅ REQUIRED FIX
+    created_at: null,
   };
 }
 
@@ -73,11 +67,6 @@ function detectPlatformFromUrl(url: string): SocialLink["platform"] {
   if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
   if (u.includes("linktr.ee")) return "linktree";
   return "unknown";
-}
-
-function getIcon(platform: SocialLink["platform"]) {
-  const p = ALL_PLATFORMS.find((x) => x.name.toLowerCase() === platform);
-  return p?.icon({ className: "w-16 h-16" }) ?? <span className="text-6xl">❓</span>;
 }
 
 /* ------------------- Sortable Row ------------------- */
@@ -112,7 +101,7 @@ function SortableRow({
       <TableCell>
         <Input
           value={social.platform}
-          placeholder="Platform Name"
+          placeholder="Platform"
           onChange={(e) =>
             updateSocial(
               social.id,
@@ -176,16 +165,9 @@ export default function ConnectPageClient({
   const router = useRouter();
   const [socials, setSocials] = useState<SocialLink[]>(initialSocials);
   const [isPending, startTransition] = useTransition();
-  const [adding, setAdding] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
 
   /* ------------------- Effects ------------------- */
-
-  useEffect(() => {
-    if (loading) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-  }, [loading]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -221,6 +203,7 @@ export default function ConnectPageClient({
           comments: s.comments,
           linktree: s.linktree,
           order_index: updated.findIndex((x) => x.id === s.id),
+          created_at: s.created_at ?? null,
         },
         { onConflict: "id" }
       );
@@ -229,7 +212,6 @@ export default function ConnectPageClient({
   };
 
   const addSocial = async () => {
-    setAdding(true);
     const newSocial = createEmptySocial();
     setSocials((prev) => [...prev, newSocial]);
 
@@ -237,12 +219,11 @@ export default function ConnectPageClient({
       ...newSocial,
       user_id: userId,
       order_index: socials.length,
+      created_at: newSocial.created_at,
     });
 
     if (error) toast.error(error.message);
     else toast.success("Added");
-
-    setAdding(false);
   };
 
   const removeSocial = async (id: string) => {
@@ -281,38 +262,25 @@ export default function ConnectPageClient({
   };
 
   const saveAll = async () => {
-    setLoading(true);
+    const payload = socials.map((s, i) => ({
+      id: s.id,
+      user_id: userId,
+      handle: s.handle,
+      platform: s.platform,
+      enabled: s.enabled,
+      followers: s.followers,
+      comments: s.comments,
+      linktree: s.linktree,
+      order_index: i,
+      created_at: s.created_at ?? null,
+    }));
 
-    startTransition(async () => {
-      const payload = socials.map((s, i) => ({
-  id: s.id,
-  user_id: userId,
-  handle: s.handle,
-  platform: s.platform,
-  enabled: s.enabled,
-  followers: s.followers,
-  comments: s.comments,
-  linktree: s.linktree,
-  order_index: i,
-  created_at: s.created_at ?? null, // ✅ REQUIRED
-}));
+    const { error } = await supabase
+      .from("user_socials")
+      .upsert(payload, { onConflict: "id" });
 
-      const { error } = await supabase
-        .from("user_socials")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) {
-        toast.error(error.message);
-        setLoading(false);
-        return;
-      }
-
-      toast.success("All saved");
-
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 600);
-    });
+    if (error) toast.error(error.message);
+    else toast.success("All saved");
   };
 
   const handleLinktreeImport = async (url: string) => {
@@ -322,19 +290,19 @@ export default function ConnectPageClient({
     const baseId = crypto.randomUUID();
 
     const parsed: SocialLink[] = [
-  {
-    id: `${baseId}-yt`,
-    handle: "https://youtube.com/@from_linktree",
-    platform: "youtube",
-    enabled: true,
-    followers: 4300,
-    comments: 120,
-    weeklyGrowthPct: undefined,
-    linktree: true,
-    order_index: socials.length,
-    created_at: null, // ✅ REQUIRED FIX
-  },
-];
+      {
+        id: `${baseId}-yt`,
+        handle: "https://youtube.com/@from_linktree",
+        platform: "youtube",
+        enabled: true,
+        followers: 4300,
+        comments: 120,
+        weeklyGrowthPct: undefined,
+        linktree: true,
+        order_index: socials.length,
+        created_at: null,
+      },
+    ];
 
     await supabase.from("user_socials").insert(
       parsed.map((p) => ({
@@ -348,8 +316,6 @@ export default function ConnectPageClient({
   };
 
   /* ------------------- Render ------------------- */
-
-  if (loading) return <AnalyticsLoadingScreen />;
 
   return (
     <Card>
@@ -408,33 +374,6 @@ export default function ConnectPageClient({
           <Button onClick={saveAll} disabled={isPending}>
             Save All
           </Button>
-        </div>
-
-        <div className="mt-12 text-center">
-          <h3 className="text-xl font-bold mb-4">Explore Platforms</h3>
-
-          <motion.div className="overflow-hidden flex justify-center">
-            <motion.div
-              className="flex gap-16"
-              animate={{ x: -slideIndex * 180 }}
-              transition={{ type: "spring", stiffness: 90 }}
-            >
-              {ALL_PLATFORMS.map((p) => (
-                <motion.a
-                  key={p.name}
-                  href={p.url}
-                  target="_blank"
-                  className="flex flex-col items-center w-44"
-                >
-                  <p.icon className="w-28 h-28 opacity-90" />
-                  <div className="font-semibold text-lg mt-2">{p.name}</div>
-                  <div className="text-sm opacity-70 text-center">
-                    {p.desc}
-                  </div>
-                </motion.a>
-              ))}
-            </motion.div>
-          </motion.div>
         </div>
       </CardContent>
     </Card>
