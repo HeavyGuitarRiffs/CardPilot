@@ -16,16 +16,16 @@ export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> 
   const results: SocialMetric[] = [];
 
   for (const acc of accounts) {
-    // 2️⃣ Get latest metrics
+    // 2️⃣ Latest metrics
     const { data: latest } = await supabase
       .from("social_metrics_daily")
       .select("comments_count, posts_count, likes_count, date")
       .eq("account_id", acc.id)
       .order("date", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    // 3️⃣ Get metrics from 7 days ago
+    // 3️⃣ Metrics from 7 days ago
     const { data: weekAgo } = await supabase
       .from("social_metrics_daily")
       .select("comments_count, posts_count, likes_count, date")
@@ -33,25 +33,45 @@ export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> 
       .lte("date", new Date(Date.now() - 7 * 86400000).toISOString())
       .order("date", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    // 4️⃣ Compute weekly growth (on posts_count as a proxy for followers if followers not tracked)
+    // 4️⃣ Weekly growth (using posts_count as follower proxy)
+    const latestFollowers = latest?.posts_count ?? 0;
+    const weekAgoFollowers = weekAgo?.posts_count ?? 0;
+
     const growth =
-      latest && weekAgo && weekAgo.posts_count
-        ? ((latest.posts_count - weekAgo.posts_count) / weekAgo.posts_count) * 100
+      weekAgoFollowers > 0
+        ? ((latestFollowers - weekAgoFollowers) / weekAgoFollowers) * 100
         : 0;
 
+    // 5️⃣ Push complete SocialMetric object (Option C)
     results.push({
-  id: acc.id,
-  platform: acc.platform,
-  handle: acc.handle,
+      id: acc.id,
+      platform: acc.platform,
+      handle: acc.handle,
 
-  followers: latest?.posts_count ?? 0,
-  comments: latest?.comments_count ?? 0,
+      // Core metrics
+      followers: latestFollowers,
+      comments: latest?.comments_count ?? 0,
+      likes: latest?.likes_count ?? null,
 
-  commentsDelta: latest?.comments_count ?? 0,
-  weeklyGrowthPct: Number(growth.toFixed(1)),
-});
+      // Delta metrics
+      commentsDelta: latest?.comments_count ?? 0,
+      followersDelta: null,
+      likesDelta: null,
+
+      // Weekly growth
+      weeklyGrowthPct: Number(growth.toFixed(1)),
+
+      // Optional future fields
+      posts: latest?.posts_count ?? null,
+      postsDelta: null,
+      momentum: null,
+      engagement_change: null,
+      engagementChange: null,
+
+      created_at: latest?.date ?? null,
+    });
   }
 
   return results;

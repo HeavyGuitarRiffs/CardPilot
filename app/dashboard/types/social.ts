@@ -15,20 +15,21 @@ export interface SocialMetric {
   // Core metrics
   followers: number;              // latest.posts_count
   comments: number;               // latest.comments_count
+  likes?: number | null;          // latest.likes_count
 
   // Delta metrics
   commentsDelta?: number | null;
+  followersDelta?: number | null;
+  likesDelta?: number | null;
 
   // Weekly growth
   weeklyGrowthPct?: number | null;
 
   // Optional future fields
-  likes?: number | null;
-  followersDelta?: number | null;
-  likesDelta?: number | null;
   momentum?: number | null;
   engagement_change?: number | null;
   engagementChange?: number | null;
+
   posts?: number | null;
   postsDelta?: number | null;
 
