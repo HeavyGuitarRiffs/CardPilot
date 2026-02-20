@@ -3,6 +3,7 @@
 export type SocialLink = {
   id: string;
   user_id?: string;
+
   handle: string;
   platform:
     | "twitter"
@@ -11,18 +12,20 @@ export type SocialLink = {
     | "youtube"
     | "linktree"
     | "unknown";
+
   enabled: boolean;
 
-  followers: number;      // total followers
-  comments: number;       // total comments
+  followers: number;       // total followers
+  comments: number;        // total comments
 
-  weeklyGrowthPct?: number; // <-- NEW FIELD (optional for now)
+  weeklyGrowthPct?: number; // optional analytics field
 
   linktree: boolean;
   order_index?: number;
+
+  // required, but can be null for new/unsaved items
   created_at: string | null;
 };
-
 
 export type UpdateSocialFn = <K extends keyof SocialLink>(
   id: string,

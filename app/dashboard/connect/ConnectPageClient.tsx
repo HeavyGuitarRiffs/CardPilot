@@ -1,7 +1,5 @@
 //app\dashboard\connect\ConnectPageClient.tsx
 
-//app\dashboard\connect\ConnectPageClient.tsx
-
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
@@ -60,8 +58,10 @@ function createEmptySocial(): SocialLink {
     enabled: true,
     followers: 0,
     comments: 0,
+    weeklyGrowthPct: undefined,
     linktree: false,
     order_index: 0,
+    created_at: null, // ✅ REQUIRED FIX
   };
 }
 
@@ -321,17 +321,19 @@ export default function ConnectPageClient({
     const baseId = crypto.randomUUID();
 
     const parsed: SocialLink[] = [
-      {
-        id: `${baseId}-yt`,
-        handle: "https://youtube.com/@from_linktree",
-        platform: "youtube",
-        enabled: true,
-        followers: 4300,
-        comments: 120,
-        linktree: true,
-        order_index: socials.length,
-      },
-    ];
+  {
+    id: `${baseId}-yt`,
+    handle: "https://youtube.com/@from_linktree",
+    platform: "youtube",
+    enabled: true,
+    followers: 4300,
+    comments: 120,
+    weeklyGrowthPct: undefined,
+    linktree: true,
+    order_index: socials.length,
+    created_at: null, // ✅ REQUIRED FIX
+  },
+];
 
     await supabase.from("user_socials").insert(
       parsed.map((p) => ({
