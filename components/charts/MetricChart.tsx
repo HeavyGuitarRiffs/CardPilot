@@ -45,7 +45,7 @@ export function MetricChart({
 }: MetricChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // live DB series
+  // Live DB series
   const dbSeries = useMetricSeriesV2(
     accountId,
     metric.key as "posts" | "comments" | "likes" | "followers"
@@ -82,18 +82,25 @@ export function MetricChart({
       chartContent = <PieChartWithStats data={categories} metricLabel={metric.label} />;
       break;
     case "radar":
-      // Only render if accountId exists to satisfy type
       chartContent = accountId ? <RadarChartWithStats userId={accountId} /> : <div>No data</div>;
       break;
   }
 
+  // -------------------- Render --------------------
   return (
     <div className="space-y-4">
       <div ref={containerRef} className="w-full">
         {chartContent}
       </div>
+
       <div className="flex justify-end">
-        <ChartShareButton targetRef={containerRef} metric={metric} />
+        <ChartShareButton
+          targetRef={containerRef}
+          metric={{
+            ...metric,
+            value: typeof metric.value === "number" ? metric.value : Number(metric.value),
+          } as MetricConfig & { value?: number; rangeLabel?: string }}
+        />
       </div>
     </div>
   );
