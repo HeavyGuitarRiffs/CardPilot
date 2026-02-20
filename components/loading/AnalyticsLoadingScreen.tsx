@@ -113,4 +113,4 @@ export default function AnalyticsLoadingScreen() {
 
 function shuffle(arr: string[]) {
   return [...arr].sort(() => Math.random() - 0.5);
-}
+}//components\loading\AnalyticsLoadingScreen.tsx

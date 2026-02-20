@@ -1,8 +1,7 @@
 // app/dashboard/connect/types.ts
-
 export type SocialLink = {
   id: string;
-  user_id?: string;
+  user_id?: string | null;
 
   handle: string;
   platform:
@@ -15,20 +14,18 @@ export type SocialLink = {
 
   enabled: boolean;
 
-  followers: number;       // total followers
-  comments: number;        // total comments
+  // Supabase often returns null → make nullable
+  followers: number | null;
+  comments: number | null;
 
-  weeklyGrowthPct?: number; // optional analytics field
+  weeklyGrowthPct?: number | null;
 
-  linktree: boolean;
-  order_index?: number;
+  // Supabase boolean columns can be null unless default true/false
+  linktree: boolean | null;
 
-  // required, but can be null for new/unsaved items
+  // Sorting-safe
+  order_index?: number | null;
+
+  // Required but nullable
   created_at: string | null;
 };
-
-export type UpdateSocialFn = <K extends keyof SocialLink>(
-  id: string,
-  key: K,
-  value: SocialLink[K]
-) => void;
