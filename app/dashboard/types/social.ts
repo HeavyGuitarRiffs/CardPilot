@@ -1,5 +1,6 @@
 // app/dashboard/types/social.ts
 import type { Database } from "@/supabase/types";
+
 /**
  * SocialMetric
  * Unified type for all social analytics across Dashboard Page 1 & Page 2.
@@ -11,22 +12,23 @@ export interface SocialMetric {
   platform: string;               // "instagram", "tiktok", etc.
   handle: string;                 // "@username" or URL
 
-  // Core metrics (nullable because Supabase may return null)
-  followers: number | null;
-  comments: number | null;
-  likes?: number | null;
+  // Core metrics
+  followers: number;              // latest.posts_count
+  comments: number;               // latest.comments_count
 
-  // Delta metrics (optional)
-  followersDelta?: number | null;
+  // Delta metrics
   commentsDelta?: number | null;
-  likesDelta?: number | null;
 
-  // Momentum / engagement fields (optional)
+  // Weekly growth
+  weeklyGrowthPct?: number | null;
+
+  // Optional future fields
+  likes?: number | null;
+  followersDelta?: number | null;
+  likesDelta?: number | null;
   momentum?: number | null;
   engagement_change?: number | null;
   engagementChange?: number | null;
-
-  // Optional future fields
   posts?: number | null;
   postsDelta?: number | null;
 

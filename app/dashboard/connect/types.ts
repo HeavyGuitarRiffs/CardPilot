@@ -1,15 +1,25 @@
-// app\dashboard\connect\types.ts
+// app/dashboard/connect/types.ts
 
 export type SocialLink = {
   id: string;
-  user_id?: string; // optional for new entries
+  user_id?: string;
   handle: string;
-  platform: "twitter" | "instagram" | "tiktok" | "youtube" | "linktree" | "unknown";
+  platform:
+    | "twitter"
+    | "instagram"
+    | "tiktok"
+    | "youtube"
+    | "linktree"
+    | "unknown";
   enabled: boolean;
-  followers: number;   // total followers
-  comments: number;    // total comments
+
+  followers: number;      // total followers
+  comments: number;       // total comments
+
+  weeklyGrowthPct?: number; // <-- NEW FIELD (optional for now)
+
   linktree: boolean;
-  order_index?: number; // for drag-and-drop ordering
+  order_index?: number;
   created_at?: string;
 };
 

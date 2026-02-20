@@ -42,12 +42,16 @@ export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> 
         : 0;
 
     results.push({
-      platform: acc.platform as SocialMetric["platform"], // cast if you have SocialPlatform enum
-      handle: acc.handle,
-      followers: latest?.posts_count ?? 0, // using posts_count as fallback
-      commentsDelta: latest?.comments_count ?? 0,
-      weeklyGrowthPct: Number(growth.toFixed(1)),
-    });
+  id: acc.id,
+  platform: acc.platform,
+  handle: acc.handle,
+
+  followers: latest?.posts_count ?? 0,
+  comments: latest?.comments_count ?? 0,
+
+  commentsDelta: latest?.comments_count ?? 0,
+  weeklyGrowthPct: Number(growth.toFixed(1)),
+});
   }
 
   return results;
