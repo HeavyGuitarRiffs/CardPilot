@@ -1,6 +1,8 @@
+//app\dashboard\page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
 import {
   Card,
@@ -38,33 +40,49 @@ const supabase = createClient();
 
 // -------------------- Metrics --------------------
 const METRICS: MetricConfig[] = [
-  { key: "commentsToday", label: "Comments Today", value: 42, description: "Number of comments you replied to today." },
-  { key: "commentsWeek", label: "This Week", value: 312, description: "Total comments replied to this week." },
-  { key: "commentsMonth", label: "This Month", value: 1248, description: "Total comments replied to this month." },
-  { key: "streak", label: "Day Streak", value: 6, description: "Consecutive days you’ve hit your engagement goal." },
-
-  { key: "avgTimePerSocial", label: "Avg Time per Social", value: "2h 14m/day", description: "Average time spent per social platform." },
-  { key: "totalTimeOnApp", label: "Total Time on App", value: "5h 23m/week", description: "Total time spent on the app." },
-  { key: "totalPosts", label: "Total Posts", value: 128, description: "Total posts on all socials combined." },
-  { key: "conversionPages", label: "Conversion Pages", value: "5 active", description: "Number of pages set up for conversions." },
-
-  { key: "mostPopularKeywords", label: "Most Popular Keywords", value: "AI, SaaS, Startup", description: "Top keywords used in comments." },
-  { key: "favoriteNiche", label: "Favorite Niche", value: "Productivity", description: "The niche you interact with most." },
-  { key: "mostCommentedNiche", label: "Most Commented Niche", value: "AI", description: "Niche with the most engagement." },
-  { key: "leastCommentedNiche", label: "Least Commented Niche", value: "Crypto", description: "Niche with the least engagement." },
-
-  { key: "mostActiveCommenter", label: "Most Active Commenter", value: "user123", description: "User with the most comments." },
-  { key: "leastActiveCommenter", label: "Least Active Commenter", value: "user789", description: "User with the fewest comments." },
-
-  { key: "ranking", label: "Ranking", value: "#12 in Country", description: "Your engagement ranking and leaderboard position." },
-  { key: "adSelling", label: "Ad Selling (Future)", value: "Coming Soon", description: "Future feature: monetize posts with ads." },
+  {
+    key: "commentsToday",
+    label: "Comments Today",
+    value: 42,
+    description: "Number of comments you replied to today.",
+  },
+  {
+    key: "commentsWeek",
+    label: "This Week",
+    value: 312,
+    description: "Total comments replied to this week.",
+  },
+  {
+    key: "commentsMonth",
+    label: "This Month",
+    value: 1248,
+    description: "Total comments replied to this month.",
+  },
+  {
+    key: "streak",
+    label: "Day Streak",
+    value: 6,
+    description: "Consecutive days you’ve hit your engagement goal.",
+  },
+  {
+    key: "totalPosts",
+    label: "Total Posts",
+    value: 128,
+    description: "Total posts on all socials combined.",
+  },
+  {
+    key: "conversionPages",
+    label: "Conversion Pages",
+    value: 5,
+    description: "Number of pages set up for conversions.",
+  },
 ];
 
 const MOMENTUM_METRIC: MetricConfig = {
   key: "momentum",
   label: "Momentum",
-  value: "+18%",
-  description: "Engagement velocity compared to last week.",
+  value: 18,
+  description: "Engagement velocity compared to last week (percentage).",
 };
 
 // -------------------- Chart Types --------------------
@@ -105,12 +123,15 @@ function ChartSwitcher({
 function MetricDrawer({ metric }: { metric: MetricConfig }) {
   const [chartType, setChartType] = useState<ChartType>("line");
 
+  const displayValue =
+    metric.key === "momentum" ? `${metric.value}%` : metric.value;
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="pt-4 space-y-1">
-            <p className="text-3xl font-extrabold">{metric.value}</p>
+            <p className="text-3xl font-extrabold">{displayValue}</p>
             <p className="text-sm text-muted-foreground">{metric.label}</p>
           </CardContent>
         </Card>
@@ -131,40 +152,144 @@ function MetricDrawer({ metric }: { metric: MetricConfig }) {
   );
 }
 
+// -------------------- Social Chip Bar --------------------
+function SocialChipBar({
+  socials,
+  selectedPlatform,
+  onSelect,
+}: {
+  socials: SocialMetric[];
+  selectedPlatform: string | "all";
+  onSelect: (platform: string | "all") => void;
+}) {
+  const platforms = Array.from(
+    new Set(socials.map((s) => s.platform))
+  );
+
+  if (!platforms.length) return null;
+
+  return (
+    <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <Button
+        variant={selectedPlatform === "all" ? "default" : "outline"}
+        size="sm"
+        onClick={() => onSelect("all")}
+      >
+        All Socials
+      </Button>
+
+      {platforms.map((platform) => (
+        <Button
+          key={platform}
+          variant={selectedPlatform === platform ? "default" : "outline"}
+          size="sm"
+          className="whitespace-nowrap"
+          onClick={() => onSelect(platform)}
+        >
+          {platform}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 // -------------------- Dashboard --------------------
 export default function DashboardPage() {
   const [socials, setSocials] = useState<SocialMetric[]>([]);
-  const [selectedSocial, setSelectedSocial] = useState<SocialMetric | null>(null);
+  const [selectedSocial, setSelectedSocial] = useState<SocialMetric | null>(
+    null
+  );
+  const [selectedPlatform, setSelectedPlatform] = useState<string | "all">(
+    "all"
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadSocials() {
       const user = await supabase.auth.getUser();
-      if (!user.data.user) return;
+      if (!user.data.user) {
+        setLoading(false);
+        return;
+      }
 
       const data = await fetchUserSocials(user.data.user.id);
       setSocials(data);
+      setLoading(false);
+
+      if (data.length > 0) {
+        setSelectedSocial(data[0]);
+        setSelectedPlatform("all");
+      }
     }
 
     loadSocials();
   }, []);
 
+  const hasSocials = socials.length > 0;
+
+  const filteredSocials =
+    selectedPlatform === "all"
+      ? socials
+      : socials.filter((s) => s.platform === selectedPlatform);
+
   return (
     <main className="min-h-screen bg-background px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-10">
 
+        {/* SOCIAL PICKER (CHIP BAR) */}
+        {hasSocials && (
+          <SocialChipBar
+            socials={socials}
+            selectedPlatform={selectedPlatform}
+            onSelect={(platform) => {
+              setSelectedPlatform(platform);
+              if (platform === "all") {
+                setSelectedSocial(socials[0] ?? null);
+              } else {
+                const found =
+                  socials.find((s) => s.platform === platform) ?? null;
+                setSelectedSocial(found);
+              }
+            }}
+          />
+        )}
+
         {/* SOCIAL TICKER */}
-        <SocialTickerCarousel socials={socials} />
+        {hasSocials && !loading && (
+          <SocialTickerCarousel socials={filteredSocials} />
+        )}
+
+        {/* EMPTY STATE WHEN NO SOCIALS */}
+        {!loading && !hasSocials && (
+          <Card>
+            <CardContent className="py-8 text-center space-y-2">
+              <p className="text-lg font-semibold">
+                No socials connected yet
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Connect your socials on the Connect page to see live analytics,
+                charts, and engagement stats here.
+              </p>
+              <Button asChild>
+                <Link href="/dashboard/connect">Go to Connect</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* SOCIAL GRID */}
-        <SocialCardGrid
-          socials={socials}
-          onSelect={(platform) => {
-            const found = socials.find((s) => s.platform === platform) || null;
-            setSelectedSocial(found);
-            setDrawerOpen(true);
-          }}
-        />
+        {hasSocials && !loading && (
+          <SocialCardGrid
+            socials={filteredSocials}
+            onSelect={(platform) => {
+              const found =
+                socials.find((s) => s.platform === platform) || null;
+              setSelectedSocial(found);
+              setDrawerOpen(true);
+            }}
+          />
+        )}
 
         {/* SOCIAL ANALYTICS DRAWER */}
         <SocialAnalyticsDrawer
@@ -173,25 +298,32 @@ export default function DashboardPage() {
           social={selectedSocial}
         />
 
-        {/* METRICS GRID */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {METRICS.map((metric) => (
-            <MetricDrawer key={metric.key} metric={metric} />
-          ))}
-        </section>
+        {/* METRICS GRID (ONLY WHEN SOCIALS EXIST) */}
+        {hasSocials && (
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {METRICS.map((metric) => (
+              <MetricDrawer key={metric.key} metric={metric} />
+            ))}
+          </section>
+        )}
 
-        {/* DAILY CHALLENGE */}
-        <DailyChallengeCard completed={1} goal={3} />
+        {/* MOMENTUM METRIC (ONLY WHEN SOCIALS EXIST) */}
+        {hasSocials && <MetricDrawer metric={MOMENTUM_METRIC} />}
 
-        {/* HIGHLIGHTED COMMENTS */}
-        <HighlightedComments
-          initialComments={["This is a great post!", "Love this insight."]}
-        />
+        {/* OPTIONAL: DAILY CHALLENGE / HIGHLIGHTED COMMENTS (CAN BE BELOW) */}
+        {/* <DailyChallengeCard /> */}
+        {/* <HighlightedComments /> */}
 
-        {/* MOMENTUM METRIC */}
-        <MetricDrawer metric={MOMENTUM_METRIC} />
+        {/* PAGINATION / NAV BETWEEN DASH PAGES */}
+        <div className="flex justify-center gap-2 pt-4">
+          <Button asChild variant="default">
+            <Link href="/dashboard">Page 1</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/page2">Page 2</Link>
+          </Button>
+        </div>
       </div>
     </main>
   );
 }
-

@@ -1,3 +1,7 @@
+//app\dashboard\connect\ConnectPageClient.tsx
+
+//app\dashboard\connect\ConnectPageClient.tsx
+
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
@@ -40,6 +44,9 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import type { SocialLink } from "./types";
+
+// ⭐ static import
+import AnalyticsLoadingScreen from "@/components/loading/AnalyticsLoadingScreen";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -90,7 +97,11 @@ function SortableRow({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: social.id });
-  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
     <TableRow ref={setNodeRef} style={style}>
@@ -120,7 +131,6 @@ function SortableRow({
             const value = e.target.value;
             updateSocial(social.id, "handle", value);
 
-            // 🔥 auto detect platform + logo
             const detected = detectPlatformFromUrl(value);
             updateSocial(social.id, "platform", detected);
           }}
@@ -168,6 +178,23 @@ export default function ConnectPageClient({
   const [isPending, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  /* ------------------- Effects ------------------- */
+
+  useEffect(() => {
+    if (loading) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+  }, [loading]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % ALL_PLATFORMS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  /* ------------------- Actions ------------------- */
 
   const updateSocial = <K extends keyof SocialLink>(
     id: string,
@@ -211,8 +238,10 @@ export default function ConnectPageClient({
       user_id: userId,
       order_index: socials.length,
     });
+
     if (error) toast.error(error.message);
     else toast.success("Added");
+
     setAdding(false);
   };
 
@@ -221,6 +250,7 @@ export default function ConnectPageClient({
       .from("user_socials")
       .delete()
       .eq("id", id);
+
     if (error) toast.error(error.message);
     setSocials((prev) => prev.filter((s) => s.id !== id));
   };
@@ -247,12 +277,12 @@ export default function ConnectPageClient({
       created_at: s.created_at ?? null,
     }));
 
-    await supabase
-      .from("user_socials")
-      .upsert(payload, { onConflict: "id" });
+    await supabase.from("user_socials").upsert(payload, { onConflict: "id" });
   };
 
   const saveAll = async () => {
+    setLoading(true);
+
     startTransition(async () => {
       const payload = socials.map((s, i) => ({
         id: s.id,
@@ -272,11 +302,15 @@ export default function ConnectPageClient({
 
       if (error) {
         toast.error(error.message);
+        setLoading(false);
         return;
       }
 
       toast.success("All saved");
-      router.refresh();
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 600);
     });
   };
 
@@ -285,6 +319,7 @@ export default function ConnectPageClient({
       return toast.error("Not a valid Linktree URL");
 
     const baseId = crypto.randomUUID();
+
     const parsed: SocialLink[] = [
       {
         id: `${baseId}-yt`,
@@ -309,12 +344,9 @@ export default function ConnectPageClient({
     toast.success("Imported from Linktree");
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSlideIndex((prev) => (prev + 1) % ALL_PLATFORMS.length);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, []);
+  /* ------------------- Render ------------------- */
+
+  if (loading) return <AnalyticsLoadingScreen />;
 
   return (
     <Card>
@@ -323,7 +355,6 @@ export default function ConnectPageClient({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* LINKTREE */}
         <div className="flex gap-2">
           <Input
             placeholder="Paste Linktree URL"
@@ -337,7 +368,6 @@ export default function ConnectPageClient({
           <Button>Import</Button>
         </div>
 
-        {/* TABLE */}
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext
             items={socials.map((s) => s.id)}
@@ -377,7 +407,6 @@ export default function ConnectPageClient({
           </Button>
         </div>
 
-        {/* PLATFORM CAROUSEL */}
         <div className="mt-12 text-center">
           <h3 className="text-xl font-bold mb-4">Explore Platforms</h3>
 

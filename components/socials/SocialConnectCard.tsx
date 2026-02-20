@@ -1,3 +1,5 @@
+//components\socials\SocialConnectCard.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -6,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const supabase = createClient();
 
 interface SocialConnectCardProps {
-  platformId: string;
-  platformName: string;
-  platformIcon: string;
+  platformId: string;      // e.g., "instagram"
+  platformName: string;    // e.g., "Instagram"
+  platformIcon: string;    // icon path
   onSuccess: () => void;
 }
 
@@ -42,43 +46,60 @@ export default function SocialConnectCard({
       }
 
       // 2. insert row
-      const { error: insertError } = await supabase.from("user_socials").insert({
-        user_id: user.id, // ✅ REQUIRED FIELD
-        platform: platformId,
-        handle,
-        created_at: new Date().toISOString(),
-      });
+      const { error: insertError } = await supabase
+        .from("user_socials")
+        .insert({
+          user_id: user.id,
+          platform: platformId,
+          handle,
+          created_at: new Date().toISOString(),
+        });
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
-      // 3. success
+      toast.success(`${platformName} connected successfully`);
       setHandle("");
       onSuccess();
     } catch (err) {
       console.error("Connect error:", err);
-      alert("Failed to connect account. Please try again.");
+      toast.error("Failed to connect account. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Card className="border border-base-300 bg-base-200">
-      <CardContent className="p-6 space-y-4">
+    <Card className="border rounded-xl shadow-sm">
+      <CardContent className="p-6 space-y-5">
+        {/* Header */}
         <div className="flex items-center gap-3">
-          <Image src={platformIcon} alt={platformName} width={28} height={28} />
+          <Image
+            src={platformIcon}
+            alt={platformName}
+            width={32}
+            height={32}
+            className="rounded-md"
+          />
           <p className="font-semibold text-lg">{platformName}</p>
         </div>
 
+        {/* Input */}
         <Input
           placeholder={`Enter your ${platformName} username or URL`}
           value={handle}
           onChange={(e) => setHandle(e.target.value)}
+          className="h-11"
         />
 
-        <Button className="w-full" disabled={!handle || loading} onClick={connect}>
+        {/* Connect button */}
+        <Button
+          className={cn(
+            "w-full h-11 font-semibold transition",
+            loading && "opacity-80"
+          )}
+          disabled={!handle || loading}
+          onClick={connect}
+        >
           {loading ? "Connecting..." : "Connect"}
         </Button>
       </CardContent>

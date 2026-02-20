@@ -1,3 +1,4 @@
+//components\charts\ChartLegend.tsx
 "use client";
 
 import React from "react";
@@ -12,19 +13,24 @@ type TimeSeriesPoint = {
 type Props = {
   data: TimeSeriesPoint[];
   label: string;
+  unit?: "hours" | "minutes" | "count" | "percent";
 };
 
 /* -------------------- Component -------------------- */
-export function ChartLegend({ data, label }: Props) {
+export function ChartLegend({ data, label, unit = "count" }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   if (!data.length) return null;
 
   const last = data[data.length - 1];
-  const prev = data[data.length - 2] ?? last;
+  const prev = data.length > 1 ? data[data.length - 2] : last;
 
-  const pct = prev.value === 0 ? 0 : ((last.value - prev.value) / prev.value) * 100;
+  const pct =
+    prev.value === 0
+      ? 0
+      : ((last.value - prev.value) / prev.value) * 100;
+
   const isUp = pct > 0;
   const isDown = pct < 0;
 
@@ -33,12 +39,27 @@ export function ChartLegend({ data, label }: Props) {
     likes: "#3B82F6",
     views: "#A855F7",
     followers: "#F59E0B",
+    time: "#6366F1",
   };
 
-  const metricColor = metricColors[label.toLowerCase()] ?? (isUp ? "#22C55E" : "#F43F5E");
+  const metricKey = label.toLowerCase().replace(/\s+/g, "");
+  const metricColor =
+    metricColors[metricKey] ?? (isUp ? "#22C55E" : "#F43F5E");
+
   const arrow = isUp ? "▲" : isDown ? "▼" : "→";
 
-  function formatNumber(n: number) {
+  function formatNumber(n: number): string {
+    switch (unit) {
+      case "hours":
+        return `${n}h`;
+      case "minutes":
+        return `${n}m`;
+      case "percent":
+        return `${n}%`;
+      default:
+        break;
+    }
+
     if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
     if (n >= 100_000) return (n / 1_000).toFixed(0) + "k";
@@ -47,15 +68,17 @@ export function ChartLegend({ data, label }: Props) {
     return n.toString();
   }
 
-  const maxValue = Math.max(...data.map((d) => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value), 1);
 
   let scaleLabel = "";
-  if (maxValue >= 10_000_000) scaleLabel = "tens of millions";
-  else if (maxValue >= 1_000_000) scaleLabel = "millions";
-  else if (maxValue >= 100_000) scaleLabel = "hundreds of thousands";
-  else if (maxValue >= 10_000) scaleLabel = "tens of thousands";
-  else if (maxValue >= 1_000) scaleLabel = "thousands";
-  else if (maxValue >= 100) scaleLabel = "hundreds";
+  if (unit === "count") {
+    if (maxValue >= 10_000_000) scaleLabel = "tens of millions";
+    else if (maxValue >= 1_000_000) scaleLabel = "millions";
+    else if (maxValue >= 100_000) scaleLabel = "hundreds of thousands";
+    else if (maxValue >= 10_000) scaleLabel = "tens of thousands";
+    else if (maxValue >= 1_000) scaleLabel = "thousands";
+    else if (maxValue >= 100) scaleLabel = "hundreds";
+  }
 
   const sparkPoints = data
     .map((d, i) => {

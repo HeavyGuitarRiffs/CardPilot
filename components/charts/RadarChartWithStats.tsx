@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "next-themes";
-import type { Database } from "@/supabase/types"; // your current path
+import type { MetricUnit } from "@/app/dashboard/types";
 
 /* -------------------- Types -------------------- */
 type SocialMetrics = {
@@ -30,11 +30,12 @@ type RadarPoint = {
 
 type Props = {
   userId: string;
+  unit?: MetricUnit; // NEW
+  social?: string;   // future social picker
 };
 
 type MetricsBySocial = Record<string, SocialMetrics>;
 
-// Row type for Supabase (matches your table)
 type V2SocialMetricsRow = {
   account_id: string | null;
   posts: number | null;
@@ -44,34 +45,52 @@ type V2SocialMetricsRow = {
 };
 
 /* -------------------- Constants -------------------- */
-const AXES: (keyof SocialMetrics)[] = ["posts", "followers", "comments", "likes"];
-const SCALE_OPTIONS = [10, 100, 1000, 10000, 100000, 1000000];
+const AXES: (keyof SocialMetrics)[] = [
+  "posts",
+  "followers",
+  "comments",
+  "likes",
+];
+
+const SCALE_OPTIONS = [100, 500, 1000, 5000, 10000, 100000];
 
 /* -------------------- Helpers -------------------- */
-function formatNumber(n: number) {
-  if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
+function formatNumber(n: number, unit?: MetricUnit): string {
+  switch (unit) {
+    case "hours":
+      return `${n}h`;
+    case "minutes":
+      return `${n}m`;
+    case "percent":
+      return `${n}%`;
+    default:
+      break;
+  }
+
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 100_000) return (n / 1_000).toFixed(0) + "k";
   if (n >= 10_000) return (n / 1_000).toFixed(1) + "k";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
+
   return n.toString();
 }
 
 function getColorForValue(value: number) {
-  if (value >= 1_000_000) return "#EC4899";
-  if (value >= 100_000) return "#FBBF24";
-  if (value >= 10_000) return "#3B82F6";
-  if (value >= 1_000) return "#34D399";
-  if (value >= 100) return "#F87171";
+  if (value >= 100000) return "#EC4899";
+  if (value >= 10000) return "#FBBF24";
+  if (value >= 1000) return "#3B82F6";
+  if (value >= 100) return "#34D399";
   return "#A78BFA";
 }
 
 /* -------------------- Component -------------------- */
-export function RadarChartWithStats({ userId }: Props) {
+export function RadarChartWithStats({ userId, unit = "count" }: Props) {
   const [metricsBySocial, setMetricsBySocial] = useState<MetricsBySocial>({});
   const [viewMode, setViewMode] = useState<"total" | string>("total");
   const [scale, setScale] = useState<number>(1000);
-  const [isolatedAxis, setIsolatedAxis] = useState<keyof SocialMetrics | null>(null);
+  const [isolatedAxis, setIsolatedAxis] = useState<keyof SocialMetrics | null>(
+    null
+  );
 
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -115,22 +134,44 @@ export function RadarChartWithStats({ userId }: Props) {
     const build = (metrics: SocialMetrics) =>
       AXES.map((axis) => ({
         metric: axis.charAt(0).toUpperCase() + axis.slice(1),
-        score: isolatedAxis && isolatedAxis !== axis ? 0 : Math.min(metrics[axis], scale),
+        score:
+          isolatedAxis && isolatedAxis !== axis
+            ? 0
+            : Math.min(metrics[axis], scale),
       }));
 
     if (!Object.keys(metricsBySocial).length) {
-      return build({ posts: 500, followers: 0, comments: 400, likes: 700 });
+      return build({
+        posts: 200,
+        followers: 500,
+        comments: 300,
+        likes: 400,
+      });
     }
 
     if (viewMode === "total") {
-      const total: SocialMetrics = { posts: 0, followers: 0, comments: 0, likes: 0 };
+      const total: SocialMetrics = {
+        posts: 0,
+        followers: 0,
+        comments: 0,
+        likes: 0,
+      };
+
       Object.values(metricsBySocial).forEach((m) => {
         AXES.forEach((a) => (total[a] += m[a]));
       });
+
       return build(total);
     }
 
-    return build(metricsBySocial[viewMode] ?? { posts: 0, followers: 0, comments: 0, likes: 0 });
+    return build(
+      metricsBySocial[viewMode] ?? {
+        posts: 0,
+        followers: 0,
+        comments: 0,
+        likes: 0,
+      }
+    );
   }, [metricsBySocial, viewMode, scale, isolatedAxis]);
 
   const radarFillColor = useMemo(
@@ -140,7 +181,7 @@ export function RadarChartWithStats({ userId }: Props) {
 
   /* -------------------- Render -------------------- */
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Scale buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
         {SCALE_OPTIONS.map((s) => (
@@ -148,10 +189,12 @@ export function RadarChartWithStats({ userId }: Props) {
             key={s}
             onClick={() => setScale(s)}
             className={`px-3 py-1 rounded text-sm font-medium transition ${
-              scale === s ? "bg-primary text-white" : "bg-muted hover:bg-muted/70"
+              scale === s
+                ? "bg-primary text-white"
+                : "bg-muted hover:bg-muted/70"
             }`}
           >
-            {s >= 1_000_000 ? `${s / 1_000_000}M` : s.toLocaleString()}
+            {s >= 1000 ? `${s / 1000}k` : s}
           </button>
         ))}
       </div>
@@ -163,13 +206,17 @@ export function RadarChartWithStats({ userId }: Props) {
           return (
             <button
               key={axis}
-              onClick={() => setIsolatedAxis(isolatedAxis === axis ? null : axis)}
+              onClick={() =>
+                setIsolatedAxis(isolatedAxis === axis ? null : axis)
+              }
               className={`rounded p-2 text-left transition-all ${
                 isolatedAxis === axis ? "ring-2 ring-primary scale-105" : ""
               }`}
             >
-              <div className="text-xs text-muted-foreground">{axis.toUpperCase()}</div>
-              <div className="font-bold">{formatNumber(value)}</div>
+              <div className="text-xs text-muted-foreground">
+                {axis.toUpperCase()}
+              </div>
+              <div className="font-bold">{formatNumber(value, unit)}</div>
             </button>
           );
         })}
@@ -182,8 +229,9 @@ export function RadarChartWithStats({ userId }: Props) {
             <PolarGrid />
             <PolarAngleAxis dataKey="metric" />
             <PolarRadiusAxis domain={[0, scale]} />
+
             <RechartsTooltip
-              formatter={(v: number) => formatNumber(v)}
+              formatter={(v: number) => formatNumber(v, unit)}
               contentStyle={{
                 backgroundColor: tooltipBg,
                 color: tooltipText,
@@ -192,6 +240,7 @@ export function RadarChartWithStats({ userId }: Props) {
               }}
               labelStyle={{ color: tooltipText }}
             />
+
             <Radar
               dataKey="score"
               stroke={radarFillColor}

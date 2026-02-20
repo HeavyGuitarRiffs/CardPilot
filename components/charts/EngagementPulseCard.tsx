@@ -1,3 +1,4 @@
+//components\charts\EngagementPulseCard.tsx
 "use client";
 
 import React, { useRef } from "react";
@@ -19,6 +20,9 @@ interface EngagementPulseCardProps {
   allowViewToggle?: boolean;
   shareable?: boolean;
   isMock?: boolean;
+  unit?: "hours" | "minutes" | "count" | "percent";
+  social?: string; // future social-picker integration
+  chart?: React.ReactNode; // future chart injection
 }
 
 export function EngagementPulseCard({
@@ -28,20 +32,39 @@ export function EngagementPulseCard({
   allowViewToggle = true,
   shareable = true,
   isMock = false,
+  unit = "count",
+  social,
+  chart,
 }: EngagementPulseCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Smart number formatter (same as charts)
-  function formatNumber(n: number) {
+  /* -----------------------------
+     Number formatter (unit-aware)
+  ----------------------------- */
+  function formatNumber(n: number): string {
+    switch (unit) {
+      case "hours":
+        return `${n}h`;
+      case "minutes":
+        return `${n}m`;
+      case "percent":
+        return `${n}%`;
+      default:
+        break;
+    }
+
     if (n >= 10_000_000) return (n / 1_000_000).toFixed(1) + "M";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
     if (n >= 100_000) return (n / 1_000).toFixed(0) + "k";
     if (n >= 10_000) return (n / 1_000).toFixed(1) + "k";
     if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
+
     return n.toString();
   }
 
-  // Human-readable range label
+  /* -----------------------------
+     Human-readable range label
+  ----------------------------- */
   const rangeLabelMap: Record<string, string> = {
     "7d": "Last 7 Days",
     "30d": "Last 30 Days",
@@ -50,10 +73,14 @@ export function EngagementPulseCard({
 
   const prettyRange = rangeLabelMap[timeRange] ?? "Recent Activity";
 
-  // Share handler (premium version)
+  /* -----------------------------
+     Share handler
+  ----------------------------- */
   const handleShare = async () => {
     const url = `${window.location.origin}/dashboard?metric=${metric}&range=${timeRange}`;
-    const shareText = `My ${metric.replace("_", " ")} (${prettyRange}) on Social Like\n${url}\n#SocialLikeAnalytics`;
+
+    const socialLabel = social ? ` (${social})` : "";
+    const shareText = `My ${metric.replace("_", " ")}${socialLabel} (${prettyRange}) on Social Like\n${url}\n#SocialLikeAnalytics`;
 
     if (navigator.share) {
       try {
@@ -79,7 +106,10 @@ export function EngagementPulseCard({
     <Card ref={cardRef} className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex flex-col">
-          <span>{metric.replace("_", " ").toUpperCase()}</span>
+          <span>
+            {metric.replace("_", " ").toUpperCase()}
+            {social ? ` (${social})` : ""}
+          </span>
           <span className="text-sm font-normal text-muted-foreground">
             {prettyRange}
           </span>
@@ -87,15 +117,18 @@ export function EngagementPulseCard({
       </CardHeader>
 
       <CardContent className="min-h-[150px]">
-        {/* Placeholder chart area */}
-        <div className="w-full h-48 flex items-center justify-center bg-muted/20 rounded-lg text-muted-foreground">
-          {isMock ? "Chart Preview (Mock Data)" : "Live Chart"}
-        </div>
+        {/* Chart injection (future) */}
+        {chart ? (
+          chart
+        ) : (
+          <div className="w-full h-48 flex items-center justify-center bg-muted/20 rounded-lg text-muted-foreground">
+            {isMock ? "Chart Preview (Mock Data)" : "Live Chart"}
+          </div>
+        )}
       </CardContent>
 
       {(allowViewToggle || shareable) && (
         <CardFooter className="flex items-center justify-between">
-          {/* View toggle placeholder (future expansion) */}
           {allowViewToggle && (
             <div className="text-sm text-muted-foreground">
               View: {view.toUpperCase()}
