@@ -52,12 +52,16 @@ export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> 
     }
 
     results.push({
-      platform: acc.platform,
-      handle: acc.handle,
-      followers: latestFollowers,               // Option 1: use posts_count as followers placeholder
-      commentsDelta: latest?.comments_count ?? 0, // Option 1 schema column
-      weeklyGrowthPct: Number(growth.toFixed(1)),
-    });
+  id: acc.id,
+  platform: acc.platform,
+  handle: acc.handle,
+
+  followers: latestFollowers,
+  comments: latest?.comments_count ?? 0,
+
+  commentsDelta: latest?.comments_count ?? 0,
+  weeklyGrowthPct: Number(growth.toFixed(1)),
+});
   }
 
   return results;
