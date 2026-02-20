@@ -26,16 +26,42 @@ export default function SocialConnectCard({
   const [loading, setLoading] = useState(false);
 
   async function connect() {
+    if (!handle) return;
+
     setLoading(true);
 
-    await supabase.from("user_socials").insert({
-      platform: platformId,
-      handle,
-      created_at: new Date().toISOString(),
-    });
+    try {
+      // 1. get logged in user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    setLoading(false);
-    onSuccess();
+      if (userError || !user) {
+        throw new Error("User not authenticated");
+      }
+
+      // 2. insert row
+      const { error: insertError } = await supabase.from("user_socials").insert({
+        user_id: user.id, // ✅ REQUIRED FIELD
+        platform: platformId,
+        handle,
+        created_at: new Date().toISOString(),
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      // 3. success
+      setHandle("");
+      onSuccess();
+    } catch (err) {
+      console.error("Connect error:", err);
+      alert("Failed to connect account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

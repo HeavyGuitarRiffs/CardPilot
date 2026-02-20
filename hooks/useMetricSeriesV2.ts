@@ -1,4 +1,3 @@
-// hooks/useMetricSeriesV2.ts
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,11 +8,18 @@ export type TimeSeriesPoint = {
   value: number;
 };
 
-export function useMetricSeriesV2(accountId?: string, metric?: "posts" | "comments" | "likes" | "followers") {
+export function useMetricSeriesV2(
+  accountId?: string,
+  metric?: "posts" | "comments" | "likes" | "followers"
+) {
   const [data, setData] = useState<TimeSeriesPoint[]>([]);
 
   useEffect(() => {
     if (!accountId || !metric) return;
+
+    // ✅ lock values so TS knows they are defined
+    const accountIdSafe = accountId;
+    const metricSafe = metric;
 
     const supabase = createClient();
 
@@ -21,14 +27,14 @@ export function useMetricSeriesV2(accountId?: string, metric?: "posts" | "commen
       const { data, error } = await supabase
         .from("social_metrics_daily_v2")
         .select("date, posts, comments, likes, followers")
-        .eq("account_id", accountId)
+        .eq("account_id", accountIdSafe)
         .order("date", { ascending: true });
 
       if (error || !data) return;
 
-      const mapped = data.map(d => ({
+      const mapped = data.map((d) => ({
         date: d.date,
-        value: d[metric] ?? 0
+        value: d[metricSafe] ?? 0,
       }));
 
       setData(mapped);
