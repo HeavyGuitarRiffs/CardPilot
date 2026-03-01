@@ -8,14 +8,14 @@ import type { Database } from "@/supabase/types";
  */
 
 export interface SocialMetric {
-  id: string;                     // Required for React keys
-  platform: string;               // "instagram", "tiktok", etc.
-  handle: string;                 // "@username" or URL
+  id: string;
+  platform: string;
+  handle: string;
 
   // Core metrics
-  followers: number;              // latest.posts_count
-  comments: number;               // latest.comments_count
-  likes?: number | null;          // latest.likes_count
+  followers: number;
+  comments: number;
+  likes?: number | null;
 
   // Delta metrics
   commentsDelta?: number | null;
@@ -32,6 +32,14 @@ export interface SocialMetric {
 
   posts?: number | null;
   postsDelta?: number | null;
+
+  // -------------------- Add these --------------------
+  commentsToday?: number | null;
+  commentsWeek?: number | null;
+  commentsMonth?: number | null;
+  commentsLastWeek?: number | null;
+  streak?: number | null;
+  conversionPages?: number | null;
 
   created_at?: string | null;
 }

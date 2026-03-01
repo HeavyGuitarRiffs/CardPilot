@@ -12,7 +12,7 @@ export type SocialLink = {
     | "linktree"
     | "unknown";
 
-  enabled: boolean;
+  
 
   // Supabase often returns null → make nullable
   followers: number | null;

@@ -1,14 +1,9 @@
-//app\dashboard\page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Drawer,
   DrawerContent,
@@ -17,77 +12,35 @@ import {
   DrawerDescription,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-
 import { Button } from "@/components/ui/button";
-
-import DailyChallengeCard from "@/components/dashboard/DailyChallengeCard";
-import HighlightedComments from "@/components/dashboard/HighlightedComments";
 
 import { MetricChart } from "@/components/charts/MetricChart";
 import type { MetricConfig } from "@/app/dashboard/types";
 
-// ✅ Socials
 import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarousel";
 import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
 import type { SocialMetric } from "@/app/dashboard/types/social";
 
-// ✅ Supabase
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
 
 const supabase = createClient();
 
-// -------------------- Metrics --------------------
-const METRICS: MetricConfig[] = [
-  {
-    key: "commentsToday",
-    label: "Comments Today",
-    value: 42,
-    description: "Number of comments you replied to today.",
-  },
-  {
-    key: "commentsWeek",
-    label: "This Week",
-    value: 312,
-    description: "Total comments replied to this week.",
-  },
-  {
-    key: "commentsMonth",
-    label: "This Month",
-    value: 1248,
-    description: "Total comments replied to this month.",
-  },
-  {
-    key: "streak",
-    label: "Day Streak",
-    value: 6,
-    description: "Consecutive days you’ve hit your engagement goal.",
-  },
-  {
-    key: "totalPosts",
-    label: "Total Posts",
-    value: 128,
-    description: "Total posts on all socials combined.",
-  },
-  {
-    key: "conversionPages",
-    label: "Conversion Pages",
-    value: 5,
-    description: "Number of pages set up for conversions.",
-  },
-];
-
-const MOMENTUM_METRIC: MetricConfig = {
-  key: "momentum",
-  label: "Momentum",
-  value: 18,
-  description: "Engagement velocity compared to last week (percentage).",
+// -------------------- Types --------------------
+type ExtendedSocialMetric = SocialMetric & {
+  commentsToday: number;
+  commentsWeek: number;
+  commentsMonth: number;
+  commentsLastWeek: number;
+  posts: number;
+  streak: number;
+  conversionPages: number;
 };
 
-// -------------------- Chart Types --------------------
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
 
+// -------------------- Chart Switcher --------------------
 function ChartSwitcher({
   chartType,
   onChange,
@@ -122,7 +75,6 @@ function ChartSwitcher({
 // -------------------- Metric Drawer --------------------
 function MetricDrawer({ metric }: { metric: MetricConfig }) {
   const [chartType, setChartType] = useState<ChartType>("line");
-
   const displayValue =
     metric.key === "momentum" ? `${metric.value}%` : metric.value;
 
@@ -158,14 +110,11 @@ function SocialChipBar({
   selectedPlatform,
   onSelect,
 }: {
-  socials: SocialMetric[];
+  socials: ExtendedSocialMetric[];
   selectedPlatform: string | "all";
   onSelect: (platform: string | "all") => void;
 }) {
-  const platforms = Array.from(
-    new Set(socials.map((s) => s.platform))
-  );
-
+  const platforms = Array.from(new Set(socials.map((s) => s.platform)));
   if (!platforms.length) return null;
 
   return (
@@ -193,83 +142,134 @@ function SocialChipBar({
   );
 }
 
-// -------------------- Dashboard --------------------
+// -------------------- Dashboard Page --------------------
 export default function DashboardPage() {
-  const [socials, setSocials] = useState<SocialMetric[]>([]);
-  const [selectedSocial, setSelectedSocial] = useState<SocialMetric | null>(
-    null
-  );
-  const [selectedPlatform, setSelectedPlatform] = useState<string | "all">(
-    "all"
-  );
+  const [socials, setSocials] = useState<ExtendedSocialMetric[]>([]);
+  const [selectedSocial, setSelectedSocial] = useState<ExtendedSocialMetric | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | "all">("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadSocials() {
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) {
+    let subscription: ReturnType<typeof supabase["channel"]> | null = null;
+
+    async function loadAndSubscribe() {
+      try {
+        const userResult = await supabase.auth.getUser();
+        const user = userResult.data.user;
+
+        // --- Early return if no user ---
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        // --- fetch socials safely with guaranteed userId ---
+        async function fetchAndNormalize(userId: string) {
+          const data = await fetchUserSocials(userId);
+          const normalized: ExtendedSocialMetric[] = data.map((s) => ({
+            ...s,
+            commentsToday: s.commentsToday ?? 0,
+            commentsWeek: s.commentsWeek ?? 0,
+            commentsMonth: s.commentsMonth ?? 0,
+            commentsLastWeek: s.commentsLastWeek ?? 0,
+            posts: s.posts ?? 0,
+            streak: s.streak ?? 0,
+            conversionPages: s.conversionPages ?? 0,
+          }));
+          setSocials(normalized);
+          setLoading(false);
+
+          if (normalized.length > 0 && !selectedSocial) {
+            setSelectedSocial(normalized[0]);
+            setSelectedPlatform("all");
+          }
+        }
+
+        // --- initial fetch ---
+        await fetchAndNormalize(user.id);
+
+        // --- subscribe to realtime updates ---
+        subscription = supabase
+          .channel(`realtime-socials-${user.id}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "socials", filter: `user_id=eq.${user.id}` },
+            () => fetchAndNormalize(user.id)
+          )
+          .subscribe();
+      } catch (err) {
+        console.error("Dashboard: Error loading socials:", err);
         setLoading(false);
-        return;
-      }
-
-      const data = await fetchUserSocials(user.data.user.id);
-      setSocials(data);
-      setLoading(false);
-
-      if (data.length > 0) {
-        setSelectedSocial(data[0]);
-        setSelectedPlatform("all");
       }
     }
 
-    loadSocials();
-  }, []);
+    loadAndSubscribe();
+
+    return () => {
+      if (subscription) supabase.removeChannel(subscription);
+    };
+  }, [selectedSocial]);
 
   const hasSocials = socials.length > 0;
-
   const filteredSocials =
     selectedPlatform === "all"
       ? socials
       : socials.filter((s) => s.platform === selectedPlatform);
 
+  // -------------------- Metrics --------------------
+  const METRICS: MetricConfig[] = useMemo(() => {
+    const commentsToday = socials.reduce((sum, s) => sum + s.commentsToday, 0);
+    const commentsWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
+    const commentsMonth = socials.reduce((sum, s) => sum + s.commentsMonth, 0);
+    const totalPosts = socials.reduce((sum, s) => sum + s.posts, 0);
+    const streak = Math.max(...socials.map((s) => s.streak), 0);
+    const conversionPages = socials.reduce((sum, s) => sum + s.conversionPages, 0);
+
+    return [
+      { key: "commentsToday", label: "Comments Today", value: commentsToday, description: "Number of comments you replied to today." },
+      { key: "commentsWeek", label: "This Week", value: commentsWeek, description: "Total comments replied to this week." },
+      { key: "commentsMonth", label: "This Month", value: commentsMonth, description: "Total comments replied to this month." },
+      { key: "streak", label: "Day Streak", value: streak, description: "Longest daily streak across socials." },
+      { key: "totalPosts", label: "Total Posts", value: totalPosts, description: "Total posts on all socials combined." },
+      { key: "conversionPages", label: "Conversion Pages", value: conversionPages, description: "Number of pages set up for conversions." },
+    ];
+  }, [socials]);
+
+  const MOMENTUM_METRIC: MetricConfig = useMemo(() => {
+    const thisWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
+    const lastWeek = socials.reduce((sum, s) => sum + s.commentsLastWeek, 0) || 1;
+    const momentum = Math.round((thisWeek / lastWeek) * 100 - 100);
+    return { key: "momentum", label: "Momentum", value: momentum, description: "Engagement velocity compared to last week (percentage)." };
+  }, [socials]);
+
+  // -------------------- Render --------------------
   return (
     <main className="min-h-screen bg-background px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-10">
-
-        {/* SOCIAL PICKER (CHIP BAR) */}
         {hasSocials && (
           <SocialChipBar
             socials={socials}
             selectedPlatform={selectedPlatform}
             onSelect={(platform) => {
               setSelectedPlatform(platform);
-              if (platform === "all") {
-                setSelectedSocial(socials[0] ?? null);
-              } else {
-                const found =
-                  socials.find((s) => s.platform === platform) ?? null;
-                setSelectedSocial(found);
-              }
+              setSelectedSocial(
+                platform === "all"
+                  ? socials[0] ?? null
+                  : socials.find((s) => s.platform === platform) ?? null
+              );
             }}
           />
         )}
 
-        {/* SOCIAL TICKER */}
-        {hasSocials && !loading && (
-          <SocialTickerCarousel socials={filteredSocials} />
-        )}
+        {hasSocials && !loading && <SocialTickerCarousel socials={filteredSocials} />}
 
-        {/* EMPTY STATE WHEN NO SOCIALS */}
         {!loading && !hasSocials && (
           <Card>
             <CardContent className="py-8 text-center space-y-2">
-              <p className="text-lg font-semibold">
-                No socials connected yet
-              </p>
+              <p className="text-lg font-semibold">No socials connected yet</p>
               <p className="text-sm text-muted-foreground">
-                Connect your socials on the Connect page to see live analytics,
-                charts, and engagement stats here.
+                Connect your socials on the Connect page to see live analytics, charts, and engagement stats here.
               </p>
               <Button asChild>
                 <Link href="/dashboard/connect">Go to Connect</Link>
@@ -278,27 +278,24 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* SOCIAL GRID */}
         {hasSocials && !loading && (
           <SocialCardGrid
             socials={filteredSocials}
             onSelect={(platform) => {
-              const found =
-                socials.find((s) => s.platform === platform) || null;
-              setSelectedSocial(found);
+              setSelectedSocial(
+                socials.find((s) => s.platform === platform) || null
+              );
               setDrawerOpen(true);
             }}
           />
         )}
 
-        {/* SOCIAL ANALYTICS DRAWER */}
         <SocialAnalyticsDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           social={selectedSocial}
         />
 
-        {/* METRICS GRID (ONLY WHEN SOCIALS EXIST) */}
         {hasSocials && (
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {METRICS.map((metric) => (
@@ -307,14 +304,8 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* MOMENTUM METRIC (ONLY WHEN SOCIALS EXIST) */}
         {hasSocials && <MetricDrawer metric={MOMENTUM_METRIC} />}
 
-        {/* OPTIONAL: DAILY CHALLENGE / HIGHLIGHTED COMMENTS (CAN BE BELOW) */}
-        {/* <DailyChallengeCard /> */}
-        {/* <HighlightedComments /> */}
-
-        {/* PAGINATION / NAV BETWEEN DASH PAGES */}
         <div className="flex justify-center gap-2 pt-4">
           <Button asChild variant="default">
             <Link href="/dashboard">Page 1</Link>

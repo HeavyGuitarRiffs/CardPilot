@@ -1,47 +1,55 @@
-//app\dashboard\layout.tsx// app/dashboard/layout.tsx
-import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
+// app/dashboard/layout.tsx
+"use client";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server-client";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 import DashboardOverlayLoader from "@/components/dashboard/DashboardOverlayLoader";
 import TopLoader from "@/components/dashboard/TopLoader";
 import DashboardTransition from "@/components/dashboard/DashboardTransition";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const supabase = createSupabaseServerClient();
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const [planName, setPlanName] = useState<string>("Free");
+  const [loading, setLoading] = useState(true);
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+      if (!session?.user) {
+        router.push("/login");
+        return;
+      }
 
-  const { data: userPlan } = await supabase
-    .from("user_plans")
-    .select("plan_id")
-    .eq("user_id", session.user.id)
-    .single();
+      const { data: userPlan } = await supabase
+        .from("user_plans")
+        .select("plan_id")
+        .eq("user_id", session.user.id)
+        .single();
 
-  const planId = userPlan?.plan_id || "free";
+      const planId = userPlan?.plan_id || "free";
 
-  const { data: plan } = await supabase
-    .from("plans")
-    .select("id, name")
-    .eq("id", planId)
-    .single();
+      const { data: plan } = await supabase
+        .from("plans")
+        .select("id, name")
+        .eq("id", planId)
+        .single();
 
-  const planName = plan?.name || "Free";
+      setPlanName(plan?.name || "Free");
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [router]);
+
+  if (loading) return <DashboardOverlayLoader />;
 
   return (
     <div className="min-h-screen flex bg-base-100 text-base-content">
-      <DashboardOverlayLoader />
       <TopLoader />
 
       <aside className="hidden md:flex w-64 flex-col border-r bg-base-200 p-6 gap-6">
@@ -62,9 +70,7 @@ export default async function DashboardLayout({
       </aside>
 
       <main className="flex-1 p-6">
-        <DashboardTransition>
-          {children}
-        </DashboardTransition>
+        <DashboardTransition>{children}</DashboardTransition>
       </main>
     </div>
   );

@@ -1,24 +1,36 @@
 // lib/supabase/server-client.ts
 
-import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { Database } from "@/supabase/types";
 
-export function createSupabaseServerClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies(); // Next.js 16: async cookies()
 
-  // ⭐ Use the new, non-deprecated signature
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get() {
-        return undefined;
-      },
-      set() {
-        // no-op
-      },
-      remove() {
-        // no-op
-      },
-    },
-  });
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+
+        set(name: string, value: string, options?: CookieOptions) {
+          cookieStore.set({
+            name,
+            value,
+            ...options
+          });
+        },
+
+        remove(name: string, options?: CookieOptions) {
+          cookieStore.delete({
+            name,
+            ...options
+          });
+        }
+      }
+    }
+  );
 }

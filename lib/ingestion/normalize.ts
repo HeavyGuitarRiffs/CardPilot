@@ -1,7 +1,8 @@
 // /lib/ingestion/normalize.ts
+import type { SocialMetric } from "@/app/dashboard/types/social";
 
 // -----------------------------
-// 1. Shared normalized type
+// 1️⃣ Shared normalized type for API metrics
 // -----------------------------
 export type NormalizedMetrics = {
   date: string; // YYYY-MM-DD
@@ -15,7 +16,7 @@ export type NormalizedMetrics = {
 };
 
 // -----------------------------
-// 2. YouTube API response types
+// 2️⃣ YouTube API response types
 // -----------------------------
 type YouTubeChannelStats = {
   items?: Array<{
@@ -29,7 +30,7 @@ type YouTubeChannelStats = {
 };
 
 // -----------------------------
-// 3. Instagram Graph API types
+// 3️⃣ Instagram Graph API types
 // -----------------------------
 type InstagramMetricValue = {
   value: number | string;
@@ -46,7 +47,32 @@ type InstagramInsightsResponse = {
 };
 
 // -----------------------------
-// 4. Normalizers
+// 4️⃣ Reddit API types
+// -----------------------------
+type RedditAPIResponse = {
+  data: {
+    id: string;
+    name: string;
+    total_karma?: number;
+    comment_karma?: number;
+    link_karma?: number;
+  };
+};
+
+// -----------------------------
+// 5️⃣ TikTok API types
+// -----------------------------
+type TikTokAPIResponse = {
+  user_id?: string;
+  username?: string;
+  followers?: number;
+  comments?: number;
+  posts?: number;
+  likes?: number;
+};
+
+// -----------------------------
+// 6️⃣ Normalizers
 // -----------------------------
 
 // YouTube
@@ -54,12 +80,11 @@ export function normalizeYouTubeMetrics(
   apiResponse: YouTubeChannelStats
 ): NormalizedMetrics {
   const stats = apiResponse.items?.[0]?.statistics ?? {};
-
   return {
     date: new Date().toISOString().slice(0, 10),
     followers: Number(stats.subscriberCount ?? 0),
     views: Number(stats.viewCount ?? 0),
-    // likes/comments are per-video; handled separately if needed
+    // likes/comments per-video not included here
   };
 }
 
@@ -68,7 +93,6 @@ export function normalizeInstagramMetrics(
   apiResponse: InstagramInsightsResponse
 ): NormalizedMetrics {
   const metrics = apiResponse.data ?? [];
-
   const byName: Record<string, number> = {};
 
   for (const m of metrics) {
@@ -78,8 +102,50 @@ export function normalizeInstagramMetrics(
 
   return {
     date: new Date().toISOString().slice(0, 10),
-    followers: byName["followers_count"],
-    impressions: byName["impressions"],
-    views: byName["profile_views"],
+    followers: byName["followers_count"] ?? 0,
+    impressions: byName["impressions"] ?? 0,
+    views: byName["profile_views"] ?? 0,
+  };
+}
+
+// Reddit
+export function normalizeRedditMetrics(data: RedditAPIResponse): SocialMetric {
+  return {
+    id: data.data.id,
+    platform: "reddit",
+    handle: data.data.name,
+    followers: data.data.total_karma ?? 0,
+    comments: data.data.comment_karma ?? 0,
+    posts: data.data.link_karma ?? 0,
+    weeklyGrowthPct: 0,
+    likes: null,
+    postsDelta: null,
+    commentsDelta: null,
+    followersDelta: null,
+    momentum: null,
+    engagement_change: null,
+    engagementChange: null,
+    created_at: new Date().toISOString(),
+  };
+}
+
+// TikTok
+export function normalizeTikTokMetrics(data: TikTokAPIResponse): SocialMetric {
+  return {
+    id: data.user_id ?? "tiktok-" + Date.now(),
+    platform: "tiktok",
+    handle: data.username ?? "unknown",
+    followers: data.followers ?? 0,
+    comments: data.comments ?? 0,
+    posts: data.posts ?? 0,
+    weeklyGrowthPct: 0,
+    likes: data.likes ?? 0,
+    postsDelta: null,
+    commentsDelta: null,
+    followersDelta: null,
+    momentum: null,
+    engagement_change: null,
+    engagementChange: null,
+    created_at: new Date().toISOString(),
   };
 }
