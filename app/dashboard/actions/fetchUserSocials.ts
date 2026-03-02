@@ -1,7 +1,7 @@
 // app/dashboard/actions/fetchUserSocials.ts
 // app/dashboard/actions/fetchUserSocials.ts
 import { createClient } from "@/lib/supabase/client";
-import type { SocialMetric } from "@/app/dashboard/types/social";
+import type { SocialMetric } from "@/app/dashboard/types";
 
 export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> {
   const supabase = createClient();
