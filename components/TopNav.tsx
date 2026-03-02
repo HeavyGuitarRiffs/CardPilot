@@ -28,6 +28,9 @@ export default function TopNav() {
           <Link href="/engines">Engines</Link>
           <Link href="/dashboard/connect">Connect</Link>
           <Link href="/dashboard">Dashboard</Link>
+          <Link href="/terms">Terms & Conditions</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/contact">Contact</Link>
         </nav>
 
         {/* Light/Dark toggle */}

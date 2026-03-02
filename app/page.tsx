@@ -351,8 +351,9 @@ export default function Home() {
             <ul className="space-y-2 text-base-content/70">
               <li><a href="/about">About</a></li>
               <li><a href="/pricing">Pricing</a></li>
-              <li><a href="/terms">Terms</a></li>
+              <li><a href="/terms">Terms & Conditions</a></li>
               <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/contact">Contact</a></li>
             </ul>
           </div>
         </div>
