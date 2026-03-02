@@ -24,15 +24,12 @@ export type SyncFunction = (
 ) => Promise<SyncResult>;
 
 export interface Account {
-  account_id: string;
+  id: string;
   user_id: string;
-
-  username?: string;
-  access_token?: string;
-  refresh_token?: string;
-  instance_url?: string;
-  wallet_address?: string;
-  eth_address?: string;
+  platform: string;
+  handle: string;
+  url: string | null;
+  created_at: string | null;
 }
 
 export interface SyncResult {

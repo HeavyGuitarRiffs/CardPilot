@@ -58,10 +58,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         <nav className="flex flex-col gap-3 text-sm">
           <a href="/dashboard">Overview</a>
-          <a href="/dashboard/page2">Deep Analytics</a>
-          <a href="/dashboard/profile">Profile</a>
           <a href="/dashboard/monetization">Monetization</a>
-          <a href="/dashboard/goals">Goals</a>
           <a href="/dashboard/achievements">Achievements</a>
           <a href="/dashboard/insights">Insights</a>
           <a href="/dashboard/analytics">Analytics</a>

@@ -20,7 +20,7 @@ import type { MetricConfig } from "@/app/dashboard/types";
 import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarousel";
 import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
-import type { SocialMetric } from "@/app/dashboard/types/social";
+import type { SocialMetric } from "@/app/dashboard/types";
 
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";

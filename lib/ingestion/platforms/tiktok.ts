@@ -1,6 +1,6 @@
 // /lib/ingestion/platforms/tiktok.ts
 import { normalizeTikTokMetrics } from "../normalize";
-import type { SocialMetric } from "@/app/dashboard/types/social";
+import type { SocialMetric } from "@/app/dashboard/types";
 
 /**
  * Fetch TikTok metrics for a user.

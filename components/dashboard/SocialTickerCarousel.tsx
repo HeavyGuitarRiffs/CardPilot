@@ -1,17 +1,15 @@
-//components\dashboard\SocialTickerCarousel.tsx
-
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { SocialMetric } from "@/app/dashboard/types/social";
+import { SocialMetric } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface Props {
   socials: SocialMetric[];
   intervalMs?: number;
-  onSelect?: (platform: string) => void; // NEW
-  loading?: boolean;                     // NEW
+  onSelect?: (platform: string) => void;
+  loading?: boolean;
 }
 
 function formatCompact(value: number): string {
@@ -43,6 +41,8 @@ function PlatformBadge({ platform }: { platform: SocialMetric["platform"] }) {
     instagram: "Instagram",
     tiktok: "TikTok",
     linkedin: "LinkedIn",
+    reddit: "Reddit",
+    github: "GitHub",
   };
 
   return (
@@ -60,7 +60,7 @@ export function SocialTickerCarousel({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  /* -------------------- Auto-scroll -------------------- */
+  // Auto-scroll
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -81,7 +81,7 @@ export function SocialTickerCarousel({
     return () => clearInterval(id);
   }, [intervalMs]);
 
-  /* -------------------- Loading skeleton -------------------- */
+  // Loading skeleton
   if (loading) {
     return (
       <div className="w-full overflow-hidden">
@@ -100,7 +100,7 @@ export function SocialTickerCarousel({
     );
   }
 
-  /* -------------------- Empty state -------------------- */
+  // Empty state
   if (!socials.length) {
     return (
       <div className="text-center text-muted-foreground py-6">
@@ -109,7 +109,7 @@ export function SocialTickerCarousel({
     );
   }
 
-  /* -------------------- Render -------------------- */
+  // Render
   return (
     <div className="w-full overflow-hidden">
       <div
@@ -117,10 +117,8 @@ export function SocialTickerCarousel({
         className="flex gap-4 overflow-x-auto scrollbar-none"
       >
         {socials.map((social) => {
-          const growthPct =
-            social.followersDelta && social.followers > 0
-              ? (social.followersDelta / social.followers) * 100
-              : 0;
+          // Growth % based on momentum (your new unified metric)
+          const growthPct = social.momentum ?? 0;
 
           return (
             <Card
@@ -140,12 +138,9 @@ export function SocialTickerCarousel({
                 <div className="flex items-center gap-2">
                   <TrendArrow delta={growthPct} />
 
-                  {typeof social.commentsDelta === "number" && (
-                    <span className="text-xs text-muted-foreground">
-                      {social.commentsDelta >= 0 ? "+" : ""}
-                      {social.commentsDelta} comments
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {social.comments} comments
+                  </span>
                 </div>
               </CardContent>
             </Card>

@@ -25,6 +25,7 @@ export default function TopNav() {
           <Link href="/">Home</Link>
           <Link href="/about">About</Link>
           <Link href="/pricing">Pricing</Link>
+          <Link href="/engines">Engines</Link>
           <Link href="/dashboard/connect">Connect</Link>
           <Link href="/dashboard">Dashboard</Link>
         </nav>

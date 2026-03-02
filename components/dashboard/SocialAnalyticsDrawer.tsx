@@ -1,5 +1,3 @@
-//components\dashboard\SocialAnalyticsDrawer.tsx
-
 "use client";
 
 import React, { useState } from "react";
@@ -13,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { MetricChart } from "@/components/charts/MetricChart";
-import type { SocialMetric } from "@/app/dashboard/types/social";
+import type { SocialMetric } from "@/app/dashboard/types";
 import { ShareChartModal } from "./ShareChartModal";
 
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
@@ -37,19 +35,20 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
       <Drawer open={open} onOpenChange={onClose}>
         <DrawerContent className="max-h-[90vh] overflow-y-auto">
           <DrawerHeader>
-            <DrawerTitle>{social.platform.toUpperCase()} Analytics</DrawerTitle>
-            <DrawerDescription>@{social.handle}</DrawerDescription>
+            <DrawerTitle>{social.platform?.toUpperCase() ?? ""}</DrawerTitle>
+            <DrawerDescription>
+              {social.handle ? `@${social.handle}` : ""}
+            </DrawerDescription>
           </DrawerHeader>
 
           <div className="px-6 pb-6 space-y-8">
-
             {/* Followers */}
             <MetricChart
               metric={{
                 key: "followers",
                 label: "Followers",
-                value: social.followers ?? 0,
-                description: "Follower growth",
+                value: social.followers,
+                description: "Follower count",
                 unit: "count",
                 social: social.platform,
               }}
@@ -63,7 +62,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               metric={{
                 key: "comments",
                 label: "Comments",
-                value: social.commentsDelta ?? social.comments ?? 0,
+                value: social.comments,
                 description: "Comment activity",
                 unit: "count",
                 social: social.platform,
@@ -78,7 +77,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               metric={{
                 key: "likes",
                 label: "Likes",
-                value: social.likesDelta ?? social.likes ?? 0,
+                value: social.likes,
                 description: "Like activity",
                 unit: "count",
                 social: social.platform,
@@ -97,9 +96,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               <Button onClick={() => setChartType("radar")}>Radar</Button>
             </div>
 
-            <Button onClick={() => setShareOpen(true)}>
-              Share Chart
-            </Button>
+            <Button onClick={() => setShareOpen(true)}>Share Chart</Button>
           </div>
         </DrawerContent>
       </Drawer>
@@ -108,8 +105,8 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         chartUrl={chartUrl}
-        title={`${social.platform} analytics`}
-        subtitle={`@${social.handle}`}
+        title={social.platform ?? ""}
+        subtitle={social.handle ? `@${social.handle}` : ""}
       />
     </>
   );

@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { SocialMetric } from "@/app/dashboard/types/social";
+import { SocialMetric } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 

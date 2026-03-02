@@ -1,5 +1,4 @@
-// /lib/ingestion/normalize.ts
-import type { SocialMetric } from "@/app/dashboard/types/social";
+import type { SocialMetric } from "@/app/dashboard/types";
 
 // -----------------------------
 // 1️⃣ Shared normalized type for API metrics
@@ -49,7 +48,7 @@ type InstagramInsightsResponse = {
 // -----------------------------
 // 4️⃣ Reddit API types
 // -----------------------------
-type RedditAPIResponse = {
+export type RedditAPIResponse = {
   data: {
     id: string;
     name: string;
@@ -62,7 +61,7 @@ type RedditAPIResponse = {
 // -----------------------------
 // 5️⃣ TikTok API types
 // -----------------------------
-type TikTokAPIResponse = {
+export type TikTokAPIResponse = {
   user_id?: string;
   username?: string;
   followers?: number;
@@ -84,7 +83,6 @@ export function normalizeYouTubeMetrics(
     date: new Date().toISOString().slice(0, 10),
     followers: Number(stats.subscriberCount ?? 0),
     views: Number(stats.viewCount ?? 0),
-    // likes/comments per-video not included here
   };
 }
 
@@ -108,44 +106,42 @@ export function normalizeInstagramMetrics(
   };
 }
 
-// Reddit
+// Reddit — FINAL VERSION
 export function normalizeRedditMetrics(data: RedditAPIResponse): SocialMetric {
   return {
     id: data.data.id,
     platform: "reddit",
     handle: data.data.name,
+
     followers: data.data.total_karma ?? 0,
     comments: data.data.comment_karma ?? 0,
-    posts: data.data.link_karma ?? 0,
-    weeklyGrowthPct: 0,
-    likes: null,
-    postsDelta: null,
-    commentsDelta: null,
-    followersDelta: null,
-    momentum: null,
-    engagement_change: null,
-    engagementChange: null,
-    created_at: new Date().toISOString(),
+    likes: 0,
+    likesDelta: 0,
+
+    momentum: 0,
+    engagement_change: 0,
+    engagementChange: 0,
+
+    oauth: true,
   };
 }
 
-// TikTok
+// TikTok — FINAL VERSION
 export function normalizeTikTokMetrics(data: TikTokAPIResponse): SocialMetric {
   return {
-    id: data.user_id ?? "tiktok-" + Date.now(),
+    id: data.user_id ?? `tiktok-${Date.now()}`,
     platform: "tiktok",
     handle: data.username ?? "unknown",
+
     followers: data.followers ?? 0,
     comments: data.comments ?? 0,
-    posts: data.posts ?? 0,
-    weeklyGrowthPct: 0,
     likes: data.likes ?? 0,
-    postsDelta: null,
-    commentsDelta: null,
-    followersDelta: null,
-    momentum: null,
-    engagement_change: null,
-    engagementChange: null,
-    created_at: new Date().toISOString(),
+    likesDelta: 0,
+
+    momentum: 0,
+    engagement_change: 0,
+    engagementChange: 0,
+
+    oauth: true,
   };
 }
