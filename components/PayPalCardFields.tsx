@@ -59,7 +59,6 @@ function CardFieldsInner({ plan }: { plan: string }) {
     try {
       setLoading(true);
 
-      // Submit card details + 3D Secure
       const submitResult = await hostedFields.cardFields.submit({
         contingencies: ["3D_SECURE"],
       });
@@ -67,7 +66,6 @@ function CardFieldsInner({ plan }: { plan: string }) {
       const orderID = submitResult.orderId;
       if (!orderID) throw new Error("Order ID missing after Hosted Fields submit");
 
-      // Capture order
       const captureRes = await fetch("/api/paypal/capture-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,10 +89,13 @@ function CardFieldsInner({ plan }: { plan: string }) {
   }
 
   return (
-    <div className="space-y-4 p-4 border rounded-md bg-white">
+    <div className="space-y-4 p-4 border rounded-md bg-white dark:bg-neutral-900 dark:border-neutral-700">
 
       {/* Card Number */}
-      <div id="card-number-container" className="border p-3 rounded">
+      <div
+        id="card-number-container"
+        className="border p-3 rounded bg-white dark:bg-neutral-800 dark:border-neutral-700"
+      >
         <PayPalHostedField
           hostedFieldType="number"
           options={{
@@ -105,7 +106,10 @@ function CardFieldsInner({ plan }: { plan: string }) {
       </div>
 
       {/* CVV */}
-      <div id="cvv-container" className="border p-3 rounded">
+      <div
+        id="cvv-container"
+        className="border p-3 rounded bg-white dark:bg-neutral-800 dark:border-neutral-700"
+      >
         <PayPalHostedField
           hostedFieldType="cvv"
           options={{
@@ -116,7 +120,10 @@ function CardFieldsInner({ plan }: { plan: string }) {
       </div>
 
       {/* Expiration */}
-      <div id="expiration-container" className="border p-3 rounded">
+      <div
+        id="expiration-container"
+        className="border p-3 rounded bg-white dark:bg-neutral-800 dark:border-neutral-700"
+      >
         <PayPalHostedField
           hostedFieldType="expirationDate"
           options={{
@@ -130,7 +137,12 @@ function CardFieldsInner({ plan }: { plan: string }) {
       <button
         onClick={handleCardPay}
         disabled={loading}
-        className="w-full bg-black text-white py-2 rounded-md"
+        className="
+          w-full py-2 rounded-md font-semibold
+          bg-black text-white
+          dark:bg-white dark:text-black
+          transition
+        "
       >
         {loading ? "Processing..." : "Pay with Card"}
       </button>
