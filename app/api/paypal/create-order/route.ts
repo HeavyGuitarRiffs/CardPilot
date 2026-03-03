@@ -1,6 +1,13 @@
 // app/api/paypal/create-order/route.ts
 import { NextResponse } from "next/server";
 
+const PLAN_PRICES: Record<string, string> = {
+  monthly: "7.00",
+  quarterly: "29.00",
+  semiannual: "75.00",
+  lifetime: "149.00",
+};
+
 const PAYPAL_API =
   process.env.PAYPAL_ENV === "live"
     ? "https://api-m.paypal.com"
@@ -23,7 +30,7 @@ async function getAccessToken() {
   const data = await res.json();
 
   if (!data.access_token) {
-    console.error("❌ [CREATE ORDER] Failed to get access token:", data);
+    console.error("❌ Failed to get PayPal access token:", data);
     throw new Error("Failed to get PayPal access token");
   }
 
@@ -32,13 +39,16 @@ async function getAccessToken() {
 
 export async function POST(req: Request) {
   try {
-    const { plan, amount } = await req.json();
+    const { plan } = await req.json();
 
-    console.log("📦 [CREATE ORDER] Incoming:", { plan, amount });
-
-    if (!amount) {
-      return NextResponse.json({ error: "Amount is required" }, { status: 400 });
+    if (!plan || !PLAN_PRICES[plan]) {
+      return NextResponse.json(
+        { error: "Invalid or missing plan" },
+        { status: 400 }
+      );
     }
+
+    const amount = PLAN_PRICES[plan];
 
     const accessToken = await getAccessToken();
 
@@ -56,9 +66,7 @@ export async function POST(req: Request) {
               currency_code: "USD",
               value: amount,
             },
-            description: plan || "SaaS subscription",
-            custom_id: `plan_${plan || "unknown"}`,
-            invoice_id: `${plan || "plan"}-${Date.now()}`,
+            description: `Plan: ${plan}`,
           },
         ],
         application_context: {
@@ -72,18 +80,20 @@ export async function POST(req: Request) {
 
     const orderData = await orderRes.json();
 
-    console.log("📦 [CREATE ORDER] PayPal response:", orderData);
-
     if (!orderData.id) {
-      console.error("❌ [CREATE ORDER] Failed:", orderData);
-      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+      console.error("❌ Failed to create order:", orderData);
+      return NextResponse.json(
+        { error: "Failed to create order" },
+        { status: 500 }
+      );
     }
-
-    console.log("📦 [CREATE ORDER] SUCCESS:", { orderID: orderData.id });
 
     return NextResponse.json({ id: orderData.id });
   } catch (err) {
     console.error("❌ [CREATE ORDER] Error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }

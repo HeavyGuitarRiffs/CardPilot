@@ -1,4 +1,3 @@
-//components\PayPalCardFields.tsx
 "use client";
 
 import {
@@ -8,7 +7,13 @@ import {
 } from "@paypal/react-paypal-js";
 import { useState } from "react";
 
-export default function PayPalCardFields({ plan, amount }: { plan: string; amount: string }) {
+export default function PayPalCardFields({
+  plan,
+  amount,
+}: {
+  plan: string;
+  amount: string;
+}) {
   async function createOrder() {
     const formattedAmount = parseFloat(amount).toFixed(2);
 
@@ -21,7 +26,7 @@ export default function PayPalCardFields({ plan, amount }: { plan: string; amoun
     const data = await res.json();
 
     if (!data.id) {
-      console.error("No order ID returned from create-order API:", data);
+      console.error("❌ No order ID returned from create-order API:", data);
       throw new Error("PayPal order creation failed");
     }
 
@@ -47,13 +52,14 @@ function CardFieldsInner({ plan }: { plan: string }) {
 
   async function handleCardPay() {
     if (!hostedFields?.cardFields) {
-      console.error("Hosted Fields not ready");
+      console.error("❌ Hosted Fields not ready");
       return;
     }
 
     try {
       setLoading(true);
 
+      // Submit card details + 3D Secure
       const submitResult = await hostedFields.cardFields.submit({
         contingencies: ["3D_SECURE"],
       });
@@ -61,6 +67,7 @@ function CardFieldsInner({ plan }: { plan: string }) {
       const orderID = submitResult.orderId;
       if (!orderID) throw new Error("Order ID missing after Hosted Fields submit");
 
+      // Capture order
       const captureRes = await fetch("/api/paypal/capture-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +83,7 @@ function CardFieldsInner({ plan }: { plan: string }) {
         console.error("Capture details:", capture);
       }
     } catch (err) {
-      console.error("Card payment error:", err);
+      console.error("❌ Card payment error:", err);
       alert("Card payment failed.");
     } finally {
       setLoading(false);
@@ -85,22 +92,41 @@ function CardFieldsInner({ plan }: { plan: string }) {
 
   return (
     <div className="space-y-4 p-4 border rounded-md bg-white">
-      <PayPalHostedField
-        id="card-number"
-        hostedFieldType="number"
-        options={{ selector: "#card-number", placeholder: "Card Number" }}
-      />
-      <PayPalHostedField
-        id="cvv"
-        hostedFieldType="cvv"
-        options={{ selector: "#cvv", placeholder: "CVV" }}
-      />
-      <PayPalHostedField
-        id="expiration-date"
-        hostedFieldType="expirationDate"
-        options={{ selector: "#expiration-date", placeholder: "MM/YY" }}
-      />
 
+      {/* Card Number */}
+      <div id="card-number-container" className="border p-3 rounded">
+        <PayPalHostedField
+          hostedFieldType="number"
+          options={{
+            selector: "#card-number-container",
+            placeholder: "Card Number",
+          }}
+        />
+      </div>
+
+      {/* CVV */}
+      <div id="cvv-container" className="border p-3 rounded">
+        <PayPalHostedField
+          hostedFieldType="cvv"
+          options={{
+            selector: "#cvv-container",
+            placeholder: "CVV",
+          }}
+        />
+      </div>
+
+      {/* Expiration */}
+      <div id="expiration-container" className="border p-3 rounded">
+        <PayPalHostedField
+          hostedFieldType="expirationDate"
+          options={{
+            selector: "#expiration-container",
+            placeholder: "MM/YY",
+          }}
+        />
+      </div>
+
+      {/* Pay Button */}
       <button
         onClick={handleCardPay}
         disabled={loading}
