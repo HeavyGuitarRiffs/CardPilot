@@ -23,14 +23,25 @@ export type SyncFunction = (
   supabase: SupabaseClient<Database>
 ) => Promise<SyncResult>;
 
-export interface Account {
+export type Account = {
   id: string;
   user_id: string;
   platform: string;
-  handle: string;
-  url: string | null;
-  created_at: string | null;
-}
+
+  // Optional profile fields
+  handle?: string;
+  url?: string | null;
+  created_at?: string | null;
+
+  // OAuth fields (required for most platforms)
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+
+  // Optional metadata
+  username?: string;
+  avatar_url?: string;
+};
 
 export interface SyncResult {
   platform: string;
