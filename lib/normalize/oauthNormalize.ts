@@ -1,33 +1,45 @@
-import type { RawSocial } from "./types";
-import { ExtendedSocialMetric } from "@/app/dashboard/hooks/useSocials";
+import type { RawSocial } from "@/app/dashboard/connect/types";
+import type { ExtendedSocialMetric } from "@/app/dashboard/hooks/useSocials";
+import { createEmptySocialMetric } from "@/lib/normalize/createEmptySocialMetric";
 
 export function oauthNormalize(raw: RawSocial): ExtendedSocialMetric {
+  const base = createEmptySocialMetric();
+
   return {
-    id: raw.id ?? crypto.randomUUID(),
-    platform: raw.platform ?? "",
-    handle: raw.handle ?? "",
+    ...base,
 
-    followers: raw.followers ?? 0,
-    comments: raw.comments ?? 0,
+    id: raw.id ?? base.id,
+    platform: raw.platform ?? base.platform,
+    handle: raw.handle ?? base.handle,
 
-    commentsToday: raw.commentsToday ?? 0,
-    commentsWeek: raw.commentsWeek ?? 0,
-    commentsMonth: raw.commentsMonth ?? 0,
-    commentsLastWeek: raw.commentsLastWeek ?? 0,
+    followers: raw.followers ?? base.followers,
+    comments: raw.comments ?? base.comments,
 
-    posts: raw.posts ?? 0,
-    streak: raw.streak ?? 0,
-    conversionPages: raw.conversionPages ?? 0,
+    commentsToday: raw.commentsToday ?? base.commentsToday,
+    commentsWeek: raw.commentsWeek ?? base.commentsWeek,
+    commentsMonth: raw.commentsMonth ?? base.commentsMonth,
+    commentsLastWeek: raw.commentsLastWeek ?? base.commentsLastWeek,
 
-    momentum: raw.momentum ?? 0,
-    engagement_change: raw.engagement_change ?? 0,
-    engagementChange: raw.engagementChange ?? 0,
+    posts: raw.posts ?? base.posts,
+    streak: raw.streak ?? base.streak,
+    conversionPages: raw.conversionPages ?? base.conversionPages,
 
-    likes: raw.likes ?? 0,
-    likesDelta: raw.likesDelta ?? 0,
+    weeklyGrowthPct: raw.weeklyGrowthPct ?? base.weeklyGrowthPct,
+    linktree: raw.linktree ?? base.linktree,
+    order_index: raw.order_index ?? base.order_index,
+    created_at: raw.created_at ?? base.created_at,
+
+    postsDelta: raw.postsDelta ?? base.postsDelta,
+    commentsDelta: raw.commentsDelta ?? base.commentsDelta,
+    followersDelta: raw.followersDelta ?? base.followersDelta,
+
+    momentum: raw.momentum ?? base.momentum,
+    engagement_change: raw.engagement_change ?? base.engagement_change,
+    engagementChange: raw.engagementChange ?? base.engagementChange,
+
+    likes: raw.likes ?? base.likes,
+    likesDelta: raw.likesDelta ?? base.likesDelta,
 
     oauth: true,
   };
 }
-
-//lib\normalize\oauthNormalize.ts

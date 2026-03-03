@@ -34,19 +34,28 @@ export async function fetchUserSocials(userId: string): Promise<SocialMetric[]> 
 
     // Required fields
     oauth: SOCIAL_AUTH_TYPE[acc.platform?.toLowerCase() ?? ""] === "oauth",
-    likesDelta: 0, // number, not null
+    likesDelta: 0,
 
-    // Optional-ish dashboard fields (but typed as numbers)
+    // Core metrics
     likes: 0,
     posts: 0,
     postsDelta: 0,
     commentsDelta: 0,
     followersDelta: 0,
-    momentum: 0, // <- fix: must be number, not null
+    momentum: 0,
 
-    // Your type currently expects both
+    // Engagement fields
     engagement_change: 0,
     engagementChange: 0,
+
+    // Dashboard-only fields (required by your type)
+    commentsToday: 0,
+    commentsWeek: 0,
+    commentsMonth: 0,
+    commentsLastWeek: 0,
+
+    streak: 0,
+    conversionPages: 0,
   }));
 
   return results;

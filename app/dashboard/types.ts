@@ -1,41 +1,48 @@
-// app/dashboard/types.ts
-
-export type MetricKey =
-  | "commentsToday"
-  | "commentsWeek"
-  | "commentsMonth"
-  | "streak"
-  | "momentum"
-  | string; // allow future metrics
-
-export type MetricUnit = "hours" | "minutes" | "count" | "percent";
-
-export type MetricConfig = {
-  key: MetricKey;
-  label: string;
-  value: number; // always numeric for charts
-  description: string;
-  unit?: MetricUnit;
-  social?: string;
-  rangeLabel?: string;
-  userId?: string;
-};
-
-// ⭐ Base type for all normalized social metrics
-export interface SocialMetric {
+export type SocialMetric = {
   id: string;
   platform: string;
   handle: string;
-
   followers: number;
   comments: number;
+  weeklyGrowthPct: number;
+  linktree: boolean;
+  order_index: number;
+  created_at: string | null;
 
+  // Required fields
+  oauth: boolean;
+  likesDelta: number;
+
+  // Core metrics
+  likes: number;
+  posts: number;
+  postsDelta: number;
+  commentsDelta: number;
+  followersDelta: number;
   momentum: number;
+
+  // Engagement fields (your backend expects both)
   engagement_change: number;
   engagementChange: number;
 
-  likes: number;
-  likesDelta: number;
+  // Dashboard-only fields (MUST exist)
+  commentsToday: number;
+  commentsWeek: number;
+  commentsMonth: number;
+  commentsLastWeek: number;
 
-  oauth: boolean; // ⭐ REQUIRED for sync-all + normalize
-}
+  streak: number;
+  conversionPages: number;
+};
+export type MetricUnit = "count" | "hours" | "minutes" | "percent";
+
+export type MetricConfig = {
+  key: string;
+  label: string;
+  value: number;
+  description?: string;
+  change?: number;
+  icon?: React.ReactNode;
+  social?: string;
+  unit?: MetricUnit;   // correct and typed
+};

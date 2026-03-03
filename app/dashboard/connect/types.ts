@@ -1,31 +1,33 @@
-// app/dashboard/connect/types.ts
-export type SocialLink = {
-  id: string;
-  user_id?: string | null;
+export type RawSocial = {
+  id?: string;
+  platform?: string;
+  handle?: string;
 
-  handle: string;
-  platform:
-    | "twitter"
-    | "instagram"
-    | "tiktok"
-    | "youtube"
-    | "linktree"
-    | "unknown";
+  followers?: number;
+  comments?: number;
 
-  
+  commentsToday?: number;
+  commentsWeek?: number;
+  commentsMonth?: number;
+  commentsLastWeek?: number;
 
-  // Supabase often returns null → make nullable
-  followers: number | null;
-  comments: number | null;
+  posts?: number;
+  streak?: number;
+  conversionPages?: number;
 
-  weeklyGrowthPct?: number | null;
+  weeklyGrowthPct?: number;
+  linktree?: boolean;
+  order_index?: number;
+  created_at?: string | null;
 
-  // Supabase boolean columns can be null unless default true/false
-  linktree: boolean | null;
+  postsDelta?: number;
+  commentsDelta?: number;
+  followersDelta?: number;
 
-  // Sorting-safe
-  order_index?: number | null;
+  momentum?: number;
+  engagement_change?: number;
+  engagementChange?: number;
 
-  // Required but nullable
-  created_at: string | null;
+  likes?: number;
+  likesDelta?: number;
 };

@@ -42,10 +42,7 @@ import { useAnimationFrame } from "framer-motion";
 import type { IconType } from "react-icons";
 
 /* ------------------- SUPABASE CLIENT ------------------- */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 /* ------------------- SOCIAL TYPES ------------------- */
 export type SocialLink = {

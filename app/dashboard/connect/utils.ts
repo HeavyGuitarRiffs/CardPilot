@@ -1,4 +1,4 @@
-import { SocialLink } from "./types";
+import type { SocialLink } from "./socialLink";
 
 export function createEmptySocial(): SocialLink {
   return {
@@ -11,6 +11,7 @@ export function createEmptySocial(): SocialLink {
     weeklyGrowthPct: undefined,
     linktree: false,
     order_index: 0,
-    created_at: null, // required by type
+    created_at: null,
+    user_id: null,
   };
 }

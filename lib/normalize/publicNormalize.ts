@@ -1,33 +1,37 @@
 // lib/normalize/publicNormalize.ts
-// lib/normalize/publicNormalize.ts
 
-import type { RawSocial } from "./types";
-import { ExtendedSocialMetric } from "@/app/dashboard/hooks/useSocials";
+import type { RawSocial } from "@/app/dashboard/connect/types";
+import type { ExtendedSocialMetric } from "@/app/dashboard/hooks/useSocials";
+import { createEmptySocialMetric } from "@/lib/normalize/createEmptySocialMetric";
 
 export function publicNormalize(raw: RawSocial): ExtendedSocialMetric {
-  return {
-    id: raw.id ?? crypto.randomUUID(),
-    platform: raw.platform ?? "",
-    handle: raw.handle ?? "",
+  const base = createEmptySocialMetric();
 
-    followers: raw.followers ?? 0,
-    comments: raw.comments ?? 0,
+  return {
+    ...base,
+
+    id: raw.id ?? base.id,
+    platform: raw.platform ?? base.platform,
+    handle: raw.handle ?? base.handle,
+
+    followers: raw.followers ?? base.followers,
+    comments: raw.comments ?? base.comments,
 
     commentsToday: 0,
     commentsWeek: 0,
     commentsMonth: 0,
     commentsLastWeek: 0,
 
-    posts: raw.posts ?? 0,
+    posts: raw.posts ?? base.posts,
     streak: 0,
     conversionPages: 0,
 
-    momentum: raw.momentum ?? 0,
-    engagement_change: raw.engagement_change ?? 0,
-    engagementChange: raw.engagementChange ?? 0,
+    momentum: raw.momentum ?? base.momentum,
+    engagement_change: raw.engagement_change ?? base.engagement_change,
+    engagementChange: raw.engagementChange ?? base.engagementChange,
 
-    likes: raw.likes ?? 0,
-    likesDelta: raw.likesDelta ?? 0,
+    likes: raw.likes ?? base.likes,
+    likesDelta: raw.likesDelta ?? base.likesDelta,
 
     oauth: false,
   };

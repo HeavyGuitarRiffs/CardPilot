@@ -2,7 +2,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import ConnectPageClient from "./ConnectPageClient";
-import type { SocialLink } from "./types";
+
+import type { SocialLink } from "./socialLink";
 
 export default async function ConnectPage() {
   const supabase = await createSupabaseServerClient();
