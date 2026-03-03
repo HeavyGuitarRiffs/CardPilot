@@ -167,7 +167,9 @@ export default function PricingPage() {
                       <p className="mb-2 text-sm font-medium text-base-content">
                         Complete your payment
                       </p>
-                      <div className="w-full">
+
+                      {/* ⭐ FIX: Neutral wrapper for PayPal Hosted Fields */}
+                      <div className="w-full bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-300 dark:border-neutral-700">
                         <PayPalCheckout
                           plan={tier.planKey!}
                           amount={tier.price.replace(/\D/g, "")}
