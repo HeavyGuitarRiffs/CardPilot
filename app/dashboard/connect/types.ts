@@ -1,4 +1,7 @@
-//app\dashboard\connect\types.ts
+// app/dashboard/connect/types.ts
+
+import type { OAuthData } from "@/app/dashboard/types";
+
 export type RawSocial = {
   id?: string;
   platform?: string;
@@ -31,4 +34,8 @@ export type RawSocial = {
 
   likes?: number | null;
   likesDelta?: number | null;
+  likesToday?: number | null;
+
+  // REQUIRED for oauthNormalize to work
+  oauth?: OAuthData | null;
 };
