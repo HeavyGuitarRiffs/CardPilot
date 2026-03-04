@@ -17,7 +17,7 @@ export default function TopNav() {
   return (
     <header className="w-full bg-base-200 shadow-md flex justify-between items-center px-6 py-3 sticky top-0 z-50">
       <Link href="/" className="text-2xl font-bold">
-        Comment Se Va
+        CardPilot
       </Link>
 
       <div className="flex gap-4 items-center">
@@ -28,9 +28,6 @@ export default function TopNav() {
           <Link href="/engines">Engines</Link>
           <Link href="/dashboard/connect">Connect</Link>
           <Link href="/dashboard">Dashboard</Link>
-          <Link href="/terms">Terms & Conditions</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/contact">Contact</Link>
         </nav>
 
         {/* Light/Dark toggle */}

@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <div className="max-w-4xl w-full py-12 space-y-8 text-center">
         <h1 className="text-3xl font-bold">Privacy Policy</h1>
         <p className="text-gray-600">
-          This Privacy Policy explains how Comment Se Va, operated by Atem Industries LLC,
+          This Privacy Policy explains how CardPilot, operated by Atem Industries LLC,
           collects, uses, and protects your information.
         </p>
 

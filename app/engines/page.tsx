@@ -33,7 +33,7 @@ export default function EnginesPage() {
     <div className="max-w-6xl mx-auto py-12 space-y-12">
       <h1 className="text-3xl font-bold">Supported Engines</h1>
       <p className="text-gray-600">
-        Comment Se Va supports both OAuth engines (deep analytics, real‑time comments)
+        CardPilot supports both OAuth engines (deep analytics, real‑time comments)
         and public engines (public stats only). Here’s what each platform can read.
       </p>
 

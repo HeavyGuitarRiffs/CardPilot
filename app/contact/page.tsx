@@ -17,7 +17,7 @@ export default function ContactPage() {
         <h1 className="text-3xl font-bold">Contact Us</h1>
         <p className="text-gray-600">
           Have questions, feedback, or partnership ideas? Reach out anytime.
-          Comment Se Va is built by Atem Industries LLC, and we’re always happy to connect.
+          CardPilot is built by Atem Industries LLC, and we’re always happy to connect.
         </p>
 
         {/* Email */}

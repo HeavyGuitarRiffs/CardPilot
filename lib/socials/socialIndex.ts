@@ -6,7 +6,7 @@ import { syncDouyin } from "./douyin";
 import { syncXiaohongshu } from "./xiaohongshu";
 import { syncKuaishou } from "./kuaishou";
 
-// New major platform sync functions
+// Major platform sync functions
 import { sync as syncTwitter } from "./twitter/sync";
 import { sync as syncInstagram } from "./instagram/sync";
 import { sync as syncYouTube } from "./youtube/sync";
@@ -23,43 +23,62 @@ export type SyncFunction = (
   supabase: SupabaseClient<Database>
 ) => Promise<SyncResult>;
 
+// -------------------------
+// FIXED ACCOUNT TYPE
+// -------------------------
 export type Account = {
   id: string;
   user_id: string;
   platform: string;
 
-  // Optional profile fields
   handle?: string;
   url?: string | null;
   created_at?: string | null;
 
-  // OAuth fields (required for most platforms)
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: number;
+  // OAuth container (matches social_accounts.oauth JSON column)
+  oauth?: {
+    access_token: string | null;
+    refresh_token?: string | null;
+    expires_at?: number | null;
+  } | null;
 
-  // Optional metadata
   username?: string;
   avatar_url?: string;
 };
 
+// -------------------------
+// FIXED SYNC RESULT TYPE
+// -------------------------
 export interface SyncResult {
   platform: string;
   updated: boolean;
   error?: string;
+
+  // universal fields
   posts?: number;
   metrics?: boolean;
+  followers?: number | null;
+
+  // full metrics for Social Like
+  comments?: number;
+  commentsToday?: number;
+  likes?: number;
+  likesToday?: number;
+  likesDelta?: number;
+  momentum?: number;
+  engagement_change?: number;
+  engagementChange?: number;
 }
 
-// Central sync registry
+// -------------------------
+// PLATFORM MAP
+// -------------------------
 const platformMap: Record<string, SyncFunction> = {
-  // Existing supported platforms
   bandcamp: syncBandcamp,
   douyin: syncDouyin,
   xiaohongshu: syncXiaohongshu,
   kuaishou: syncKuaishou,
 
-  // Newly added major platforms
   twitter: syncTwitter,
   instagram: syncInstagram,
   youtube: syncYouTube,
@@ -69,6 +88,9 @@ const platformMap: Record<string, SyncFunction> = {
   patreon: syncPatreon,
 };
 
+// -------------------------
+// SYNC DISPATCHERS
+// -------------------------
 export async function syncPlatform(
   platform: string,
   account: Account,

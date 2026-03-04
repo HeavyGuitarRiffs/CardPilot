@@ -208,15 +208,15 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg text-muted-foreground sm:text-xl">
-              Comment Se Va unifies every creator platform into one compounding
+              CardPilot unifies every creator platform into one compounding
               analytics engine — powering growth, monetization, and the
               incentives that move the internet.
             </p>
 
             <p className="text-lg text-base-content/70 font-medium">
               {onlineCount === 1
-                ? "1 person now checking Comment Se Va"
-                : `${onlineCount} people now checking Comment Se Va`}
+                ? "1 person now checking their engines on CardPilot"
+                : `${onlineCount} people now checking CardPilot`}
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-12 justify-center">
               <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
                 <p className="text-lg italic">
-                  “Comment Se Va showed me influence I didn’t even know I had.”
+                  “CardPilot showed me influence I didn’t even know I had.”
                 </p>
                 <p className="font-bold">— Alex, Music Creator</p>
               </div>
@@ -302,7 +302,7 @@ export default function Home() {
 
               <div className="p-10 bg-base-200 rounded-3xl shadow-xl space-y-4">
                 <p className="text-lg italic">
-                  “My brand deals doubled after using Comment Se Va.”
+                  “My brand deals doubled after using CardPilot.”
                 </p>
                 <p className="font-bold">— Jordan, YouTuber</p>
               </div>
@@ -330,7 +330,7 @@ export default function Home() {
       <footer className="py-20 px-10 bg-base-200 border-t border-base-300 w-full">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
           <div>
-            <h3 className="text-xl font-bold mb-4">Comment Se Va</h3>
+            <h3 className="text-xl font-bold mb-4">CardPilot</h3>
             <p className="text-base-content/70">
               The universal incentive engine for creators.
             </p>
@@ -341,7 +341,7 @@ export default function Home() {
             <ul className="space-y-2 text-base-content/70">
               <li>🔒 Secure authentication</li>
               <li>🛡️ Encrypted data</li>
-              <li>💳 Stripe-powered payments</li>
+              <li>💳 PayPal-powered payments</li>
               <li>📄 Transparent pricing</li>
             </ul>
           </div>
@@ -360,7 +360,7 @@ export default function Home() {
       </footer>
 
       <footer className="w-full border-t border-border mt-16 py-8 px-6 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Comment Se Va. All rights reserved.
+        © {new Date().getFullYear()} CardPilot. All rights reserved.
       </footer>
     </>
   );

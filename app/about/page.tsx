@@ -18,7 +18,7 @@ export default function AboutPage() {
           </h1>
 
           <p className="hero-subtitle max-w-3xl mx-auto">
-            Comment Se Va helps you turn daily social effort into measurable growth,
+            CardPilot helps you turn daily social effort into measurable growth,
             consistency, and eventually income — without guessing what works.
           </p>
         </section>
@@ -61,7 +61,7 @@ export default function AboutPage() {
 
         {/* SOLUTION / FLOW */}
         <section className="space-y-12">
-          <h2 className="text-center text-3xl font-bold">How Comment Se Va Works</h2>
+          <h2 className="text-center text-3xl font-bold">How CardPilot Works</h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             <div className="card bg-base-200">
@@ -118,7 +118,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold">Build Once. Compound Daily.</h2>
 
           <p className="opacity-80 max-w-xl mx-auto">
-            Comment Se Va is designed to be checked multiple times a day —
+            CardPilot is designed to be checked multiple times a day —
             because momentum should be visible.
           </p>
 
@@ -134,7 +134,7 @@ export default function AboutPage() {
           </h2>
 
           <p className="text-center opacity-70 max-w-2xl mx-auto">
-            Comment Se Va currently supports 91 creator platforms — from social networks
+            CardPilot currently supports 91 creator platforms — from social networks
             to video, music, writing, Web3, and monetization ecosystems.
           </p>
 

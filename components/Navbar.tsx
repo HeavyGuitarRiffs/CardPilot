@@ -14,7 +14,7 @@ export default function Navbar() {
     <nav className="flex items-center justify-between px-6 py-4 bg-base-100 border-b">
       {/* Logo */}
       <Link href="/" className="font-bold text-xl">
-        Social Like
+        CardPilot
       </Link>
 
       {/* Desktop nav */}

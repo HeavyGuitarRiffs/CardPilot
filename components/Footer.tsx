@@ -20,7 +20,7 @@ export function Footer() {
         {/* Left: copyright + feedback */}
         <div className="flex flex-col md:flex-row items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Comment Se Va. All rights reserved.
+            © {new Date().getFullYear()} CardPilot. All rights reserved.
           </p>
 
           <Link

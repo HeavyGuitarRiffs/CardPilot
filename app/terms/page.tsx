@@ -5,14 +5,14 @@ export default function TermsPage() {
         <h1 className="text-3xl font-bold">Terms & Conditions</h1>
 
         <p className="text-gray-600">
-          These Terms & Conditions (“Terms”) govern your use of Comment Se Va, a product
+          These Terms & Conditions (“Terms”) govern your use of CardPilot, a product
           operated by Atem Industries LLC (“we”, “our”, “us”). By accessing or using our
           websites, applications, or services, you agree to these Terms.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8">1. Company Information</h2>
         <p>
-          Comment Se Va is owned and operated by <strong>Atem Industries LLC</strong>, a
+          CardPilot is owned and operated by <strong>Atem Industries LLC</strong>, a
           limited liability corporation providing digital products and creative services.
           Our offerings include:
         </p>
@@ -46,7 +46,7 @@ export default function TermsPage() {
 
         <h2 className="text-2xl font-semibold mt-8">5. Data & Analytics</h2>
         <p className="text-gray-700">
-          Comment Se Va analyzes social media data for engagement insights. We do not
+          CardPilot analyzes social media data for engagement insights. We do not
           modify, delete, or post content on your behalf. Data access is read‑only.
         </p>
 
