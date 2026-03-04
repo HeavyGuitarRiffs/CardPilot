@@ -1,33 +1,34 @@
+//app\dashboard\connect\types.ts
 export type RawSocial = {
   id?: string;
   platform?: string;
   handle?: string;
 
-  followers?: number;
-  comments?: number;
+  followers?: number | null;
+  comments?: number | null;
 
-  commentsToday?: number;
-  commentsWeek?: number;
-  commentsMonth?: number;
-  commentsLastWeek?: number;
+  commentsToday?: number | null;
+  commentsWeek?: number | null;
+  commentsMonth?: number | null;
+  commentsLastWeek?: number | null;
 
-  posts?: number;
-  streak?: number;
-  conversionPages?: number;
+  posts?: number | null;
+  streak?: number | null;
+  conversionPages?: number | null;
 
-  weeklyGrowthPct?: number;
-  linktree?: boolean;
-  order_index?: number;
+  weeklyGrowthPct?: number | null;
+  linktree?: boolean | null;
+  order_index?: number | null;
   created_at?: string | null;
 
-  postsDelta?: number;
-  commentsDelta?: number;
-  followersDelta?: number;
+  postsDelta?: number | null;
+  commentsDelta?: number | null;
+  followersDelta?: number | null;
 
-  momentum?: number;
-  engagement_change?: number;
-  engagementChange?: number;
+  momentum?: number | null;
+  engagement_change?: number | null;
+  engagementChange?: number | null;
 
-  likes?: number;
-  likesDelta?: number;
+  likes?: number | null;
+  likesDelta?: number | null;
 };

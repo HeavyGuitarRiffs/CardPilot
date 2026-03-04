@@ -10,7 +10,7 @@ export type { SocialAccount };
 export type NormalizedProfile = {
   username: string;
   avatar_url: string;
-  followers: number;
+  followers?: number | null;
   following: number;
 };
 

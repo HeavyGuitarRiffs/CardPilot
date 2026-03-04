@@ -7,12 +7,25 @@ export async function sync(
   supabase: SupabaseClient<Database>
 ): Promise<SyncResult> {
   try {
+    // Placeholder until Patreon API integration is added
     const posts: unknown[] = [];
-    const metrics: Record<string, unknown> = {};
 
     return {
       platform: "patreon",
       updated: true,
+
+      followers: null, // Patreon does not expose follower count
+
+      comments: 0,
+      commentsToday: 0,
+      likes: 0,
+      likesToday: 0,
+      likesDelta: 0,
+
+      momentum: 0,
+      engagement_change: 0,
+      engagementChange: 0,
+
       posts: posts.length,
       metrics: true,
     };

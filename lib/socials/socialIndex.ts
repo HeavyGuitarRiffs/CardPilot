@@ -24,7 +24,31 @@ export type SyncFunction = (
 ) => Promise<SyncResult>;
 
 // -------------------------
-// FIXED ACCOUNT TYPE
+// RAW SUPABASE ROW TYPE
+// -------------------------
+export type RawSocialAccountRow = {
+  id: string;
+  user_id: string;
+  platform: string;
+
+  handle?: string;
+  url?: string | null;
+  created_at?: string | null;
+
+  provider_account_id?: string | null;
+
+  oauth?: {
+    access_token: string | null;
+    refresh_token?: string | null;
+    expires_at?: number | null;
+  } | null;
+
+  username?: string | null;
+  avatar_url?: string | null;
+};
+
+// -------------------------
+// HYDRATED ACCOUNT TYPE
 // -------------------------
 export type Account = {
   id: string;
@@ -35,39 +59,48 @@ export type Account = {
   url?: string | null;
   created_at?: string | null;
 
-  // OAuth container (matches social_accounts.oauth JSON column)
+  provider_account_id: string;
+
+  access_token: string | null;
+  refresh_token?: string | null;
+  expires_at?: number | null;
+
   oauth?: {
     access_token: string | null;
     refresh_token?: string | null;
     expires_at?: number | null;
   } | null;
 
-  username?: string;
-  avatar_url?: string;
+  username?: string | null;
+  avatar_url?: string | null;
 };
 
 // -------------------------
-// FIXED SYNC RESULT TYPE
+// SYNC RESULT TYPE
 // -------------------------
 export interface SyncResult {
   platform: string;
   updated: boolean;
   error?: string;
 
-  // universal fields
   posts?: number;
   metrics?: boolean;
+
   followers?: number | null;
 
-  // full metrics for Social Like
   comments?: number;
   commentsToday?: number;
+
   likes?: number;
   likesToday?: number;
   likesDelta?: number;
+
   momentum?: number;
   engagement_change?: number;
   engagementChange?: number;
+
+  impressions90d?: number | null;
+  windowStart?: string | null;
 }
 
 // -------------------------

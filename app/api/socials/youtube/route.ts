@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 import { sync as youtubeSync } from "@/lib/socials/youtube/sync";
 import { oauthNormalize } from "@/lib/normalize/oauthNormalize";
+import { hydrateAccount } from "@/lib/socials/hydrateAccount";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
@@ -18,7 +19,7 @@ export async function POST() {
 
   const userId = session.user.id;
 
-  // Your real schema uses: platform + handle
+  // Load YouTube account
   const { data: account, error: accountError } = await supabase
     .from("social_accounts")
     .select("*")
@@ -33,20 +34,25 @@ export async function POST() {
     );
   }
 
-  // account.handle is the username
-  const raw = await youtubeSync(account, supabase);
+  // Convert Supabase row → full Account type
+  const hydrated = hydrateAccount(account);
 
+  // Run sync
+  const raw = await youtubeSync(hydrated, supabase);
+
+  // Normalize
   const normalized = oauthNormalize({
     ...raw,
     platform: "youtube",
-    handle: account.handle, // FIXED
+    handle: account.handle,
   });
 
-  // Your schema has social_profiles for profile-level data
+  // Save normalized metrics
   await supabase.from("social_profiles").upsert({
     user_id: userId,
     platform: "youtube",
     handle: normalized.handle,
+
     followers: normalized.followers,
     comments: normalized.comments,
     likes: normalized.likes,
@@ -54,6 +60,7 @@ export async function POST() {
     momentum: normalized.momentum,
     engagement_change: normalized.engagement_change,
     engagementChange: normalized.engagementChange,
+
     oauth: normalized.oauth,
   });
 

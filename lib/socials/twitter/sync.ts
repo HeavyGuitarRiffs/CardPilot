@@ -7,13 +7,25 @@ export async function sync(
   supabase: SupabaseClient<Database>
 ): Promise<SyncResult> {
   try {
-    // Placeholder types that satisfy strict TypeScript
+    // Placeholder until X API integration is added
     const posts: unknown[] = [];
-    const metrics: Record<string, unknown> = {};
 
     return {
       platform: "twitter",
       updated: true,
+
+      followers: null, // X follower count not fetched yet
+
+      comments: 0,
+      commentsToday: 0,
+      likes: 0,
+      likesToday: 0,
+      likesDelta: 0,
+
+      momentum: 0,
+      engagement_change: 0,
+      engagementChange: 0,
+
       posts: posts.length,
       metrics: true,
     };

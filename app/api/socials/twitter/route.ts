@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 import { sync as twitterSync } from "@/lib/socials/twitter/sync";
 import { publicNormalize } from "@/lib/normalize/publicNormalize";
+import { hydrateAccount } from "@/lib/socials/hydrateAccount";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
@@ -18,7 +19,7 @@ export async function POST() {
 
   const userId = session.user.id;
 
-  // Your real schema: social_accounts (platform + handle)
+  // Load Twitter account
   const { data: account, error: accountError } = await supabase
     .from("social_accounts")
     .select("*")
@@ -33,20 +34,25 @@ export async function POST() {
     );
   }
 
-  // account.handle is the username
-  const raw = await twitterSync(account, supabase);
+  // Convert Supabase row → full Account type
+  const hydrated = hydrateAccount(account);
 
+  // Run sync
+  const raw = await twitterSync(hydrated, supabase);
+
+  // Normalize (Twitter uses publicNormalize)
   const normalized = publicNormalize({
     ...raw,
     platform: "twitter",
     handle: account.handle,
   });
 
-  // Your schema: social_profiles stores normalized metrics
+  // Save normalized metrics
   await supabase.from("social_profiles").upsert({
     user_id: userId,
     platform: "twitter",
     handle: normalized.handle,
+
     followers: normalized.followers,
     comments: normalized.comments,
     likes: normalized.likes,
@@ -54,7 +60,8 @@ export async function POST() {
     momentum: normalized.momentum,
     engagement_change: normalized.engagement_change,
     engagementChange: normalized.engagementChange,
-    oauth: normalized.oauth ?? false, // publicNormalize usually sets oauth=false
+
+    oauth: normalized.oauth ?? false,
   });
 
   return NextResponse.json({ success: true, data: normalized });
