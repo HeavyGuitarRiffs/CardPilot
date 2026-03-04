@@ -20,7 +20,7 @@ import type { MetricConfig } from "@/app/dashboard/types";
 import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarousel";
 import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UserSocial } from "@/app/dashboard/types";
 
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
@@ -28,14 +28,12 @@ import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
 const supabase = createClient();
 
 // -------------------- Types --------------------
-type ExtendedSocialMetric = SocialMetric & {
+type ExtendedSocialMetric = UserSocial & {
   commentsToday: number;
   commentsWeek: number;
   commentsMonth: number;
   commentsLastWeek: number;
   posts: number;
-  streak: number;
-  conversionPages: number;
 };
 
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
@@ -145,8 +143,10 @@ function SocialChipBar({
 // -------------------- Dashboard Page --------------------
 export default function DashboardPage() {
   const [socials, setSocials] = useState<ExtendedSocialMetric[]>([]);
-  const [selectedSocial, setSelectedSocial] = useState<ExtendedSocialMetric | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<string | "all">("all");
+  const [selectedSocial, setSelectedSocial] =
+    useState<ExtendedSocialMetric | null>(null);
+  const [selectedPlatform, setSelectedPlatform] =
+    useState<string | "all">("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -158,43 +158,44 @@ export default function DashboardPage() {
         const userResult = await supabase.auth.getUser();
         const user = userResult.data.user;
 
-        // --- Early return if no user ---
         if (!user) {
           setLoading(false);
           return;
         }
 
-        // --- fetch socials safely with guaranteed userId ---
         async function fetchAndNormalize(userId: string) {
-          const data = await fetchUserSocials(userId);
-          const normalized: ExtendedSocialMetric[] = data.map((s) => ({
-            ...s,
-            commentsToday: s.commentsToday ?? 0,
-            commentsWeek: s.commentsWeek ?? 0,
-            commentsMonth: s.commentsMonth ?? 0,
-            commentsLastWeek: s.commentsLastWeek ?? 0,
-            posts: s.posts ?? 0,
-            streak: s.streak ?? 0,
-            conversionPages: s.conversionPages ?? 0,
-          }));
-          setSocials(normalized);
-          setLoading(false);
+  const data = await fetchUserSocials(userId);
 
-          if (normalized.length > 0 && !selectedSocial) {
-            setSelectedSocial(normalized[0]);
-            setSelectedPlatform("all");
-          }
-        }
+  const normalized: ExtendedSocialMetric[] = data.map((s) => ({
+  ...s,
+  commentsToday: s.comments ?? 0,
+  commentsWeek: s.comments ?? 0,
+  commentsMonth: s.comments ?? 0,
+  commentsLastWeek: s.comments ?? 0,
+  posts: 0, // no posts field exists in UserSocial
+}));
 
-        // --- initial fetch ---
+  setSocials(normalized);
+  setLoading(false);
+
+  if (normalized.length > 0 && !selectedSocial) {
+    setSelectedSocial(normalized[0]);
+    setSelectedPlatform("all");
+  }
+}
+
         await fetchAndNormalize(user.id);
 
-        // --- subscribe to realtime updates ---
         subscription = supabase
           .channel(`realtime-socials-${user.id}`)
           .on(
             "postgres_changes",
-            { event: "*", schema: "public", table: "socials", filter: `user_id=eq.${user.id}` },
+            {
+              event: "*",
+              schema: "public",
+              table: "socials",
+              filter: `user_id=eq.${user.id}`,
+            },
             () => fetchAndNormalize(user.id)
           )
           .subscribe();
@@ -223,25 +224,49 @@ export default function DashboardPage() {
     const commentsWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
     const commentsMonth = socials.reduce((sum, s) => sum + s.commentsMonth, 0);
     const totalPosts = socials.reduce((sum, s) => sum + s.posts, 0);
-    
 
     return [
-      { key: "commentsToday", label: "Comments Today", value: commentsToday, description: "Number of comments you replied to today." },
-      { key: "commentsWeek", label: "This Week", value: commentsWeek, description: "Total comments replied to this week." },
-      { key: "commentsMonth", label: "This Month", value: commentsMonth, description: "Total comments replied to this month." },
-      { key: "totalPosts", label: "Total Posts", value: totalPosts, description: "Total posts on all socials combined." },
-      
+      {
+        key: "commentsToday",
+        label: "Comments Today",
+        value: commentsToday,
+        description: "Number of comments you replied to today.",
+      },
+      {
+        key: "commentsWeek",
+        label: "This Week",
+        value: commentsWeek,
+        description: "Total comments replied to this week.",
+      },
+      {
+        key: "commentsMonth",
+        label: "This Month",
+        value: commentsMonth,
+        description: "Total comments replied to this month.",
+      },
+      {
+        key: "totalPosts",
+        label: "Total Posts",
+        value: totalPosts,
+        description: "Total posts on all socials combined.",
+      },
     ];
   }, [socials]);
 
   const MOMENTUM_METRIC: MetricConfig = useMemo(() => {
     const thisWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
-    const lastWeek = socials.reduce((sum, s) => sum + s.commentsLastWeek, 0) || 1;
+    const lastWeek =
+      socials.reduce((sum, s) => sum + s.commentsLastWeek, 0) || 1;
     const momentum = Math.round((thisWeek / lastWeek) * 100 - 100);
-    return { key: "momentum", label: "Momentum", value: momentum, description: "Engagement velocity compared to last week (percentage)." };
+    return {
+      key: "momentum",
+      label: "Momentum",
+      value: momentum,
+      description:
+        "Engagement velocity compared to last week (percentage).",
+    };
   }, [socials]);
 
-  
   // -------------------- Render --------------------
   return (
     <main className="min-h-screen bg-background px-6 py-10">
@@ -261,14 +286,17 @@ export default function DashboardPage() {
           />
         )}
 
-        {hasSocials && !loading && <SocialTickerCarousel socials={filteredSocials} />}
+        {hasSocials && !loading && (
+          <SocialTickerCarousel socials={filteredSocials} />
+        )}
 
         {!loading && !hasSocials && (
           <Card>
             <CardContent className="py-8 text-center space-y-2">
               <p className="text-lg font-semibold">No socials connected yet</p>
               <p className="text-sm text-muted-foreground">
-                Connect your socials on the Connect page to see live analytics, charts, and engagement stats here.
+                Connect your socials on the Connect page to see live analytics,
+                charts, and engagement stats here.
               </p>
               <Button asChild>
                 <Link href="/dashboard/connect">Go to Connect</Link>

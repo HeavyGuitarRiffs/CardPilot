@@ -2,34 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { RealtimeSocialMetric, OAuthData } from "@/app/dashboard/types";
 
 const supabase = createClient();
 
-// ⭐ Updated to match normalize layer + sync-all engine
-export type ExtendedSocialMetric = SocialMetric & {
-  commentsToday: number;
-  commentsWeek: number;
-  commentsMonth: number;
-  commentsLastWeek: number;
-
-  posts: number;
-  streak: number;
-  conversionPages: number;
-
-  momentum: number;
-  engagement_change: number;
-  engagementChange: number;
-
-  likes: number;
-  likesDelta: number;
-
-  oauth: boolean; // ⭐ REQUIRED for sync-all + normalize
-};
-
 export function useSocials() {
-  const [socials, setSocials] = useState<ExtendedSocialMetric[]>([]);
+  const [socials, setSocials] = useState<RealtimeSocialMetric[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,28 +25,47 @@ export function useSocials() {
       const userId = user.id;
 
       async function fetchAndNormalize() {
-        const data = await fetchUserSocials(userId);
+        const { data: rows, error } = await supabase
+          .from("social_profiles")
+          .select("*")
+          .eq("user_id", userId);
 
-        // ⭐ Ensure all fields exist so UI never breaks
-        const normalized: ExtendedSocialMetric[] = data.map((s) => ({
-          ...s,
-          commentsToday: s.commentsToday ?? 0,
-          commentsWeek: s.commentsWeek ?? 0,
-          commentsMonth: s.commentsMonth ?? 0,
-          commentsLastWeek: s.commentsLastWeek ?? 0,
+        if (error || !rows) {
+          console.error("Failed to load social_profiles:", error);
+          setLoading(false);
+          return;
+        }
 
-          posts: s.posts ?? 0,
-          streak: s.streak ?? 0,
-          conversionPages: s.conversionPages ?? 0,
+        const normalized: RealtimeSocialMetric[] = rows.map((s) => ({
+          followers: s.followers ?? 0,
+
+          comments: s.comments ?? 0,
+          commentsToday: s.commentstoday ?? 0,
+          commentsWeek: s.commentsweek ?? 0,
+          commentsMonth: s.commentsmonth ?? 0,
+          commentsLastWeek: s.commentslastweek ?? 0,
+
+          likes: s.likes ?? 0,
+          likesToday: s.likestoday ?? 0,
+          likesDelta: s.likesdelta ?? 0,
 
           momentum: s.momentum ?? 0,
           engagement_change: s.engagement_change ?? 0,
-          engagementChange: s.engagementChange ?? 0,
+          engagementChange: s.engagementchange ?? 0,
 
-          likes: s.likes ?? 0,
-          likesDelta: s.likesDelta ?? 0,
+          posts: s.posts ?? 0,
 
-          oauth: s.oauth ?? false,
+          oauth: (s.oauth as unknown as OAuthData) ?? {
+  access_token: "",
+  refresh_token: undefined,
+  expires_at: undefined,
+  scope: undefined,
+  token_type: undefined,
+  raw: {},
+},
+
+          handle: s.username ?? "",
+          platform: s.platform ?? "",
         }));
 
         setSocials(normalized);
@@ -84,7 +81,7 @@ export function useSocials() {
           {
             event: "*",
             schema: "public",
-            table: "socials",
+            table: "social_profiles",
             filter: `user_id=eq.${userId}`,
           },
           fetchAndNormalize

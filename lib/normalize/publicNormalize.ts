@@ -1,4 +1,3 @@
-// lib/normalize/publicNormalize.ts
 import type { RawSocial } from "@/app/dashboard/connect/types";
 import type { ExtendedSocialMetric } from "@/app/dashboard/types";
 import { createEmptySocialMetric } from "@/lib/normalize/createEmptySocialMetric";
@@ -10,13 +9,13 @@ export function publicNormalize(raw: RawSocial): ExtendedSocialMetric {
     followers: raw.followers ?? base.followers,
 
     comments: raw.comments ?? base.comments,
-    commentsToday: 0,
-    commentsWeek: 0,
-    commentsMonth: 0,
-    commentsLastWeek: 0,
+    commentsToday: raw.commentsToday ?? base.commentsToday,
+    commentsWeek: raw.commentsWeek ?? base.commentsWeek,
+    commentsMonth: raw.commentsMonth ?? base.commentsMonth,
+    commentsLastWeek: raw.commentsLastWeek ?? base.commentsLastWeek,
 
     likes: raw.likes ?? base.likes,
-    likesToday: 0,
+    likesToday: raw.likesToday ?? base.likesToday,
     likesDelta: raw.likesDelta ?? base.likesDelta,
 
     momentum: raw.momentum ?? base.momentum,
