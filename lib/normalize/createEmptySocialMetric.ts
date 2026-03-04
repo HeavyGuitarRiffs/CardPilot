@@ -1,7 +1,7 @@
 // lib/normalize/createEmptySocialMetric.ts
-import type { ExtendedSocialMetric, OAuthData } from "@/app/dashboard/types";
+import type { RealtimeSocialMetric, OAuthData } from "@/app/dashboard/types";
 
-export function createEmptySocialMetric(): ExtendedSocialMetric {
+const createEmptySocialMetric = (): RealtimeSocialMetric => {
   const emptyOAuth: OAuthData = {
     access_token: "",
     refresh_token: undefined,
@@ -35,4 +35,6 @@ export function createEmptySocialMetric(): ExtendedSocialMetric {
     handle: "",
     platform: "",
   };
-}
+};
+
+export default createEmptySocialMetric;

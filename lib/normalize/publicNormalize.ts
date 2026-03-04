@@ -1,8 +1,9 @@
+// lib/normalize/publicNormalize.ts
 import type { RawSocial } from "@/app/dashboard/connect/types";
-import type { ExtendedSocialMetric } from "@/app/dashboard/types";
-import { createEmptySocialMetric } from "@/lib/normalize/createEmptySocialMetric";
+import type { RealtimeSocialMetric } from "@/app/dashboard/types";
+import createEmptySocialMetric from "@/lib/normalize/createEmptySocialMetric";
 
-export function publicNormalize(raw: RawSocial): ExtendedSocialMetric {
+export function publicNormalize(raw: RawSocial): RealtimeSocialMetric {
   const base = createEmptySocialMetric();
 
   return {

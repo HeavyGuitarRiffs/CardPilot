@@ -26,6 +26,8 @@ export default function TopNav() {
           <Link href="/about">About</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/engines">Engines</Link>
+          <Link href="/schedule">Schedule</Link>
+          <Link href="/instructions">Instructions</Link>
           <Link href="/dashboard/connect">Connect</Link>
           <Link href="/dashboard">Dashboard</Link>
         </nav>

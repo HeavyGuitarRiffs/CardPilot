@@ -11,7 +11,7 @@ export interface OAuthData {
 }
 
 // ---------------------------------------------
-// user_socials → sidebar list
+// user_socials → connected accounts (raw DB rows)
 // ---------------------------------------------
 export interface UserSocial {
   id: string;
@@ -27,7 +27,28 @@ export interface UserSocial {
 }
 
 // ---------------------------------------------
+// DashboardSocial → unified analytics type
+// (used by DashboardPage + charts + cards)
+// ---------------------------------------------
+export interface DashboardSocial {
+  id: string;
+  platform: string;
+  handle: string;
+
+  followers: number;
+  linktree: boolean;
+  order_index: number;
+  created_at: string | null;
+
+  commentsToday: number;
+  commentsWeek: number;
+  commentsMonth: number;
+  posts: number;
+}
+
+// ---------------------------------------------
 // social_profiles → real-time metrics
+// (used by SocialAnalyticsDrawer)
 // ---------------------------------------------
 export interface RealtimeSocialMetric {
   followers: number;
