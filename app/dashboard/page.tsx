@@ -223,16 +223,14 @@ export default function DashboardPage() {
     const commentsWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
     const commentsMonth = socials.reduce((sum, s) => sum + s.commentsMonth, 0);
     const totalPosts = socials.reduce((sum, s) => sum + s.posts, 0);
-    const streak = Math.max(...socials.map((s) => s.streak), 0);
-    const conversionPages = socials.reduce((sum, s) => sum + s.conversionPages, 0);
+    
 
     return [
       { key: "commentsToday", label: "Comments Today", value: commentsToday, description: "Number of comments you replied to today." },
       { key: "commentsWeek", label: "This Week", value: commentsWeek, description: "Total comments replied to this week." },
       { key: "commentsMonth", label: "This Month", value: commentsMonth, description: "Total comments replied to this month." },
-      { key: "streak", label: "Day Streak", value: streak, description: "Longest daily streak across socials." },
       { key: "totalPosts", label: "Total Posts", value: totalPosts, description: "Total posts on all socials combined." },
-      { key: "conversionPages", label: "Conversion Pages", value: conversionPages, description: "Number of pages set up for conversions." },
+      
     ];
   }, [socials]);
 
