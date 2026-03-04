@@ -68,6 +68,15 @@ export default function Navbar() {
             <Link href="/pricing">Pricing</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
+            <Link href="/engines">Engines</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/schedule">Schedule</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/instructions">Instructions</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <Link href="/dashboard">Dashboard</Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
