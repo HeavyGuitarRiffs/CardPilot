@@ -4,11 +4,11 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 import { sync as githubSync } from "@/lib/socials/github/sync";
 import { oauthNormalize } from "@/lib/normalize/oauthNormalize";
+import { hydrateAccount } from "@/lib/socials/hydrateAccount";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
 
-  // 1. Get user session
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -19,7 +19,7 @@ export async function POST() {
 
   const userId = session.user.id;
 
-  // 2. Load GitHub account from your real schema: social_accounts
+  // Load GitHub account
   const { data: account, error: accountError } = await supabase
     .from("social_accounts")
     .select("*")
@@ -34,21 +34,25 @@ export async function POST() {
     );
   }
 
-  // 3. Run platform sync
-  const raw = await githubSync(account, supabase);
+  // Convert Supabase row → full Account type
+  const hydrated = hydrateAccount(account);
 
-  // 4. Normalize
+  // Run sync
+  const raw = await githubSync(hydrated, supabase);
+
+  // Normalize
   const normalized = oauthNormalize({
     ...raw,
     platform: "github",
     handle: account.handle,
   });
 
-  // 5. Save normalized data into your real table: social_profiles
+  // Save normalized metrics
   await supabase.from("social_profiles").upsert({
     user_id: userId,
     platform: "github",
     handle: normalized.handle,
+
     followers: normalized.followers,
     comments: normalized.comments,
     likes: normalized.likes,
@@ -56,9 +60,9 @@ export async function POST() {
     momentum: normalized.momentum,
     engagement_change: normalized.engagement_change,
     engagementChange: normalized.engagementChange,
+
     oauth: normalized.oauth,
   });
 
-  // 6. Return response
   return NextResponse.json({ success: true, data: normalized });
 }
