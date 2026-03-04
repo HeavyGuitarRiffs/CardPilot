@@ -1,13 +1,24 @@
 // ---------------------------------------------
+// Supabase JSON-safe type
+// ---------------------------------------------
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | Json[]
+  | { [key: string]: Json };
+
+// ---------------------------------------------
 // OAuth payload returned from each platform
 // ---------------------------------------------
 export interface OAuthData {
   access_token: string;
-  refresh_token?: string;
-  expires_at?: number;
-  scope?: string;
-  token_type?: string;
-  raw?: Record<string, unknown>;
+  refresh_token?: string | null;
+  expires_at?: number | null;
+  scope?: string | null;
+  token_type?: string | null;
+  raw?: { [key: string]: Json }; // MUST be JSON-safe for Supabase
 }
 
 // ---------------------------------------------
