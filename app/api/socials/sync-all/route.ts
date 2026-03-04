@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { SOCIAL_SYNC_MAP, SOCIAL_AUTH_TYPE } from "@/lib/socials";
 import { oauthNormalize } from "@/lib/normalize/oauthNormalize";
 import { publicNormalize } from "@/lib/normalize/publicNormalize";
+import { hydrateAccount } from "@/lib/socials/hydrateAccount";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
@@ -28,7 +29,6 @@ export async function POST() {
     return NextResponse.json({ error: "No connected socials" }, { status: 404 });
   }
 
-  // 🚀 Run all syncs in parallel
   const results = await Promise.all(
     accounts.map(async (account) => {
       const platform = account.platform;
@@ -40,7 +40,11 @@ export async function POST() {
 
       try {
         const syncFn = await loadSync();
-        const raw = await syncFn(account, supabase);
+
+        // FIX: hydrate before syncing
+        const hydrated = hydrateAccount(account);
+
+        const raw = await syncFn(hydrated, supabase);
 
         const normalized =
           SOCIAL_AUTH_TYPE[platform] === "oauth"
