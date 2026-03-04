@@ -1,12 +1,12 @@
 // lib/socials/socialIndex.ts
 
-// Existing sync functions
+// Existing sync functions (legacy)
 import { syncBandcamp } from "./bandcamp";
 import { syncDouyin } from "./douyin";
 import { syncXiaohongshu } from "./xiaohongshu";
 import { syncKuaishou } from "./kuaishou";
 
-// Major platform sync functions
+// Major platform sync functions (new unified format)
 import { sync as syncTwitter } from "./twitter/sync";
 import { sync as syncInstagram } from "./instagram/sync";
 import { sync as syncYouTube } from "./youtube/sync";
@@ -18,6 +18,9 @@ import { sync as syncPatreon } from "./patreon/sync";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/supabase/types";
 
+// -------------------------
+// SYNC FUNCTION TYPE
+// -------------------------
 export type SyncFunction = (
   account: Account,
   supabase: SupabaseClient<Database>
@@ -76,41 +79,89 @@ export type Account = {
 };
 
 // -------------------------
-// SYNC RESULT TYPE
+// FINAL, COMPLETE SYNC RESULT TYPE
 // -------------------------
-export interface SyncResult {
+export type SyncResult = {
   platform: string;
   updated: boolean;
-  error?: string;
+  error?: string | null;
 
-  posts?: number;
-  metrics?: boolean;
+  followers: number | null;
 
-  followers?: number | null;
+  comments: number;
+  commentsToday: number;
+  commentsWeek: number;
+  commentsMonth: number;
+  commentsLastWeek: number;
 
-  comments?: number;
-  commentsToday?: number;
+  likes: number;
+  likesToday: number;
+  likesDelta: number;
 
-  likes?: number;
-  likesToday?: number;
-  likesDelta?: number;
+  momentum: number;
+  engagement_change: number;
+  engagementChange: number;
 
-  momentum?: number;
-  engagement_change?: number;
-  engagementChange?: number;
+  posts: number;
+  metrics: boolean;
+};
 
-  impressions90d?: number | null;
-  windowStart?: string | null;
+// -------------------------
+// UNIVERSAL FALLBACK RESULT
+// -------------------------
+export function emptySyncResult(
+  platform: string,
+  error?: string | null
+): SyncResult {
+  return {
+    platform,
+    updated: false,
+    error: error ?? null,
+
+    followers: null,
+
+    comments: 0,
+    commentsToday: 0,
+    commentsWeek: 0,
+    commentsMonth: 0,
+    commentsLastWeek: 0,
+
+    likes: 0,
+    likesToday: 0,
+    likesDelta: 0,
+
+    momentum: 0,
+    engagement_change: 0,
+    engagementChange: 0,
+
+    posts: 0,
+    metrics: false,
+  };
 }
 
 // -------------------------
-// PLATFORM MAP
+// PLATFORM MAP (with legacy wrappers)
 // -------------------------
 const platformMap: Record<string, SyncFunction> = {
-  bandcamp: syncBandcamp,
-  douyin: syncDouyin,
-  xiaohongshu: syncXiaohongshu,
-  kuaishou: syncKuaishou,
+  bandcamp: async (account, supabase) => ({
+    ...emptySyncResult("bandcamp"),
+    ...(await syncBandcamp(account, supabase)),
+  }),
+
+  douyin: async (account, supabase) => ({
+    ...emptySyncResult("douyin"),
+    ...(await syncDouyin(account, supabase)),
+  }),
+
+  xiaohongshu: async (account, supabase) => ({
+    ...emptySyncResult("xiaohongshu"),
+    ...(await syncXiaohongshu(account, supabase)),
+  }),
+
+  kuaishou: async (account, supabase) => ({
+    ...emptySyncResult("kuaishou"),
+    ...(await syncKuaishou(account, supabase)),
+  }),
 
   twitter: syncTwitter,
   instagram: syncInstagram,
@@ -133,18 +184,20 @@ export async function syncPlatform(
   const syncFn = platformMap[key];
 
   if (!syncFn) {
-    return {
-      platform,
-      updated: false,
-      error: `Unsupported platform: ${platform}`,
-    };
+    return emptySyncResult(platform, `Unsupported platform: ${platform}`);
   }
 
   try {
-    return await syncFn(account, supabase);
+    const result = await syncFn(account, supabase);
+
+    // Ensure full SyncResult shape
+    return {
+      ...emptySyncResult(platform),
+      ...result,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return { platform, updated: false, error: message };
+    return emptySyncResult(platform, message);
   }
 }
 
