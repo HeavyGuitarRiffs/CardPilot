@@ -1,6 +1,6 @@
 // /lib/ingestion/platforms/reddit.ts
 import { normalizeRedditMetrics } from "../normalize";
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
 /**
  * Fetch Reddit metrics for a user.
@@ -9,7 +9,7 @@ import type { SocialMetric } from "@/app/dashboard/types";
 export async function fetchRedditMetrics(args: {
   accessToken: string;
   username: string;
-}): Promise<SocialMetric> {
+}): Promise<UnifiedSocialMetric> {
   if (!args.accessToken) throw new Error("Reddit access token missing");
   if (!args.username) throw new Error("Reddit username missing");
 
@@ -29,5 +29,7 @@ export async function fetchRedditMetrics(args: {
   }
 
   const data = await res.json();
+
+  // normalizeRedditMetrics MUST now return UnifiedSocialMetric
   return normalizeRedditMetrics(data);
 }

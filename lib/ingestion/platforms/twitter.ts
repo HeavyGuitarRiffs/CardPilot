@@ -1,4 +1,4 @@
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
 type TwitterUserResponse = {
   data?: {
@@ -21,7 +21,7 @@ type TwitterUserResponse = {
 export async function fetchTwitterMetrics(args: {
   accessToken: string;
   username: string;
-}): Promise<SocialMetric> {
+}): Promise<UnifiedSocialMetric> {
   if (!args.accessToken) throw new Error("Twitter access token missing");
   if (!args.username) throw new Error("Twitter username missing");
 
@@ -54,35 +54,30 @@ export async function fetchTwitterMetrics(args: {
     handle: user.username,
 
     followers: metrics.followers_count ?? 0,
+
+    // Twitter API does not provide comment counts directly
     comments: 0,
-    weeklyGrowthPct: 0,
-    linktree: false,
-    order_index: 0,
-    created_at: null,
-
-    // Required fields
-    oauth: true,
-    likesDelta: 0,
-
-    // Core metrics
-    likes: 0,
-    posts: metrics.tweet_count ?? 0,
-    postsDelta: 0,
-    commentsDelta: 0,
-    followersDelta: 0,
-    momentum: 0,
-
-    // Engagement fields
-    engagement_change: 0,
-    engagementChange: 0,
-
-    // Dashboard-only fields
     commentsToday: 0,
     commentsWeek: 0,
     commentsMonth: 0,
     commentsLastWeek: 0,
 
-    streak: 0,
-    conversionPages: 0,
+    likes: 0,
+    likesToday: 0,
+    likesDelta: 0,
+
+    posts: metrics.tweet_count ?? 0,
+
+    momentum: 0,
+    engagementChange: 0,
+
+    oauth: {
+      access_token: args.accessToken,
+      refresh_token: undefined,
+      expires_at: undefined,
+      scope: undefined,
+      token_type: "bearer",
+      raw: {},
+    },
   };
 }

@@ -1,6 +1,6 @@
 // /lib/ingestion/platforms/tiktok.ts
 import { normalizeTikTokMetrics } from "../normalize";
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
 /**
  * Fetch TikTok metrics for a user.
@@ -9,15 +9,18 @@ import type { SocialMetric } from "@/app/dashboard/types";
 export async function fetchTikTokMetrics(args: {
   accessToken: string;
   userId: string;
-}): Promise<SocialMetric> {
+}): Promise<UnifiedSocialMetric> {
   if (!args.accessToken) throw new Error("TikTok access token missing");
   if (!args.userId) throw new Error("TikTok userId missing");
 
-  const res = await fetch(`https://api.tiktok.com/user/info/?user_id=${args.userId}`, {
-    headers: {
-      Authorization: `Bearer ${args.accessToken}`,
-    },
-  });
+  const res = await fetch(
+    `https://api.tiktok.com/user/info/?user_id=${args.userId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${args.accessToken}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     const text = await res.text();
@@ -25,5 +28,7 @@ export async function fetchTikTokMetrics(args: {
   }
 
   const data = await res.json();
+
+  // normalizeTikTokMetrics MUST now return UnifiedSocialMetric
   return normalizeTikTokMetrics(data);
 }

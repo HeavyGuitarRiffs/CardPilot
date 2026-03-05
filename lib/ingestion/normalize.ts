@@ -1,4 +1,4 @@
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
 // -----------------------------
 // 1️⃣ Shared normalized type for API metrics
@@ -74,7 +74,7 @@ export type TikTokAPIResponse = {
 // 6️⃣ Normalizers
 // -----------------------------
 
-// YouTube
+// YouTube → NormalizedMetrics (correct)
 export function normalizeYouTubeMetrics(
   apiResponse: YouTubeChannelStats
 ): NormalizedMetrics {
@@ -86,7 +86,7 @@ export function normalizeYouTubeMetrics(
   };
 }
 
-// Instagram
+// Instagram → NormalizedMetrics (correct)
 export function normalizeInstagramMetrics(
   apiResponse: InstagramInsightsResponse
 ): NormalizedMetrics {
@@ -107,81 +107,65 @@ export function normalizeInstagramMetrics(
 }
 
 // -----------------------------
-// Reddit — FIXED FULL SocialMetric
+// Reddit → UnifiedSocialMetric
 // -----------------------------
-export function normalizeRedditMetrics(data: RedditAPIResponse): SocialMetric {
+export function normalizeRedditMetrics(
+  data: RedditAPIResponse
+): UnifiedSocialMetric {
   return {
     id: data.data.id,
     platform: "reddit",
     handle: data.data.name,
 
     followers: data.data.total_karma ?? 0,
+
     comments: data.data.comment_karma ?? 0,
-    likes: 0,
-    likesDelta: 0,
-
-    weeklyGrowthPct: 0,
-    linktree: false,
-    order_index: 0,
-    created_at: null,
-
-    posts: 0,
-    postsDelta: 0,
-    commentsDelta: 0,
-    followersDelta: 0,
-    momentum: 0,
-
-    engagement_change: 0,
-    engagementChange: 0,
-
     commentsToday: 0,
     commentsWeek: 0,
     commentsMonth: 0,
     commentsLastWeek: 0,
 
-    streak: 0,
-    conversionPages: 0,
+    likes: 0,
+    likesToday: 0,
+    likesDelta: 0,
 
-    oauth: true,
+    posts: 0,
+
+    momentum: 0,
+    engagementChange: 0,
+
+    oauth: undefined,
   };
 }
 
 // -----------------------------
-// TikTok — FIXED FULL SocialMetric
+// TikTok → UnifiedSocialMetric
 // -----------------------------
-export function normalizeTikTokMetrics(data: TikTokAPIResponse): SocialMetric {
+export function normalizeTikTokMetrics(
+  data: TikTokAPIResponse
+): UnifiedSocialMetric {
   return {
     id: data.user_id ?? `tiktok-${Date.now()}`,
     platform: "tiktok",
     handle: data.username ?? "unknown",
 
     followers: data.followers ?? 0,
+
     comments: data.comments ?? 0,
-    likes: data.likes ?? 0,
-    likesDelta: 0,
-
-    weeklyGrowthPct: 0,
-    linktree: false,
-    order_index: 0,
-    created_at: null,
-
-    posts: data.posts ?? 0,
-    postsDelta: 0,
-    commentsDelta: 0,
-    followersDelta: 0,
-    momentum: 0,
-
-    engagement_change: 0,
-    engagementChange: 0,
-
     commentsToday: 0,
     commentsWeek: 0,
     commentsMonth: 0,
     commentsLastWeek: 0,
 
-    streak: 0,
-    conversionPages: 0,
+    likes: data.likes ?? 0,
+    likesToday: 0,
+    likesDelta: 0,
 
-    oauth: true,
+    posts: data.posts ?? 0,
+
+    momentum: 0,
+    engagementChange: 0,
+
+    oauth: undefined,
   };
 }
