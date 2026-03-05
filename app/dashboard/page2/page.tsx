@@ -1,4 +1,3 @@
-//app\dashboard\page2\page.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -8,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { useSocials } from "@/app/dashboard/hooks/useSocials";
-import type { ExtendedSocialMetric } from "@/app/dashboard/hooks/useSocials";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
 
@@ -18,7 +17,7 @@ function SocialChipBar({
   selectedPlatform,
   onSelect,
 }: {
-  socials: ExtendedSocialMetric[];
+  socials: UnifiedSocialMetric[];
   selectedPlatform: string | "all";
   onSelect: (platform: string | "all") => void;
 }) {
@@ -87,14 +86,14 @@ function BigSocialCard({
   social,
   onShare,
 }: {
-  social: ExtendedSocialMetric;
-  onShare: (s: ExtendedSocialMetric) => void;
+  social: UnifiedSocialMetric;
+  onShare: (s: UnifiedSocialMetric) => void;
 }) {
   const followers = social.followers ?? 0;
   const comments = social.comments ?? 0;
+
   const momentum =
     social.momentum ??
-    social.engagement_change ??
     social.engagementChange ??
     0;
 
@@ -171,7 +170,8 @@ export default function DashboardPage2() {
   const [selectedPlatform, setSelectedPlatform] = useState<string | "all">("all");
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedSocial, setSelectedSocial] = useState<ExtendedSocialMetric | null>(null);
+  const [selectedSocial, setSelectedSocial] =
+    useState<UnifiedSocialMetric | null>(null);
 
   const hasSocials = socials.length > 0;
 

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { RealtimeSocialMetric, OAuthData } from "@/app/dashboard/types";
+import type { OAuthData, UnifiedSocialMetric } from "@/app/dashboard/types";
 
 const supabase = createClient();
 
 export function useSocials() {
-  const [socials, setSocials] = useState<RealtimeSocialMetric[]>([]);
+  const [socials, setSocials] = useState<UnifiedSocialMetric[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +36,11 @@ export function useSocials() {
           return;
         }
 
-        const normalized: RealtimeSocialMetric[] = rows.map((s) => ({
+        const normalized: UnifiedSocialMetric[] = rows.map((s) => ({
+          id: s.id ?? "",
+          platform: s.platform ?? "",
+          handle: s.username ?? "",
+
           followers: s.followers ?? 0,
 
           comments: s.comments ?? 0,
@@ -49,23 +53,20 @@ export function useSocials() {
           likesToday: s.likestoday ?? 0,
           likesDelta: s.likesdelta ?? 0,
 
-          momentum: s.momentum ?? 0,
-          engagement_change: s.engagement_change ?? 0,
-          engagementChange: s.engagementchange ?? 0,
-
           posts: s.posts ?? 0,
 
-          oauth: (s.oauth as unknown as OAuthData) ?? {
-  access_token: "",
-  refresh_token: undefined,
-  expires_at: undefined,
-  scope: undefined,
-  token_type: undefined,
-  raw: {},
-},
+          momentum: s.momentum ?? 0,
+          engagementChange:
+            s.engagementchange ??
+            s.engagement_change ??
+            0,
 
-          handle: s.username ?? "",
-          platform: s.platform ?? "",
+          oauth:
+            s.oauth &&
+            typeof s.oauth === "object" &&
+            !Array.isArray(s.oauth)
+              ? (s.oauth as unknown as OAuthData)
+              : undefined,
         }));
 
         setSocials(normalized);

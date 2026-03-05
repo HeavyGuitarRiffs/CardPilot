@@ -101,3 +101,27 @@ export type MetricConfig = {
   social?: string;
   unit?: MetricUnit;
 };
+export interface UnifiedSocialMetric {
+  id: string;
+  platform: string;
+  handle: string;
+
+  followers: number;
+
+  comments: number;
+  commentsToday: number;
+  commentsWeek: number;
+  commentsMonth: number;
+  commentsLastWeek: number;
+
+  likes: number;
+  likesToday: number;
+  likesDelta: number;
+
+  posts: number;
+
+  momentum: number;
+  engagementChange: number;
+
+  oauth?: OAuthData;
+}
