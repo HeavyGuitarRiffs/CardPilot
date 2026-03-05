@@ -11,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { MetricChart } from "@/components/charts/MetricChart";
-import type { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 import { ShareChartModal } from "./ShareChartModal";
 
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
@@ -19,7 +19,7 @@ type ChartType = "line" | "bar" | "area" | "pie" | "radar";
 type Props = {
   open: boolean;
   onClose: () => void;
-  social: SocialMetric | null;
+  social: UnifiedSocialMetric | null;
 };
 
 export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {

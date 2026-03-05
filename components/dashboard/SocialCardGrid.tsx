@@ -1,19 +1,18 @@
-//components\dashboard\SocialCardGrid.tsx
 "use client";
 
 import React from "react";
-import { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  socials: SocialMetric[];
-  onSelect?: (platform: SocialMetric["platform"]) => void;
-  selectedSocial?: string;        // NEW
-  loading?: boolean;              // NEW
+  socials: UnifiedSocialMetric[];
+  onSelect?: (platform: UnifiedSocialMetric["platform"]) => void;
+  selectedSocial?: string;
+  loading?: boolean;
 }
 
-function getPlatformName(platform: SocialMetric["platform"]): string {
+function getPlatformName(platform: UnifiedSocialMetric["platform"]): string {
   switch (platform) {
     case "youtube":
       return "YouTube";

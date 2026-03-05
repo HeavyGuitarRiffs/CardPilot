@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { SocialMetric } from "@/app/dashboard/types";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  socials: SocialMetric[];
+  socials: UnifiedSocialMetric[];
   intervalMs?: number;
   onSelect?: (platform: string) => void;
   loading?: boolean;
@@ -34,7 +34,7 @@ function TrendArrow({ delta }: { delta: number }) {
   );
 }
 
-function PlatformBadge({ platform }: { platform: SocialMetric["platform"] }) {
+function PlatformBadge({ platform }: { platform: UnifiedSocialMetric["platform"] }) {
   const labelMap: Record<string, string> = {
     youtube: "YouTube",
     twitter: "Twitter",
@@ -117,7 +117,6 @@ export function SocialTickerCarousel({
         className="flex gap-4 overflow-x-auto scrollbar-none"
       >
         {socials.map((social) => {
-          // Growth % based on momentum (your new unified metric)
           const growthPct = social.momentum ?? 0;
 
           return (
