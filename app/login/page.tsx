@@ -109,7 +109,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-xl border border-white/10 bg-gradient-to-br from-[#0b0f14] to-[#111827] p-6 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-center text-3xl font-semibold text-white">
-            Welcome to Social Like
+            Welcome to CardPilot
           </CardTitle>
         </CardHeader>
 
