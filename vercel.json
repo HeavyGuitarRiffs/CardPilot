@@ -1,24 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/tier1",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/tier2",
-      "schedule": "*/20 * * * *"
-    },
-    {
-      "path": "/api/cron/tier3",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/tier4",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/tier5",
-      "schedule": "0 */3 * * *"
+      "path": "/api/cron",
+      "schedule": "0 9 * * *"
     }
   ]
 }
