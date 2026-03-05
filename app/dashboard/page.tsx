@@ -16,19 +16,16 @@ import { Button } from "@/components/ui/button";
 
 import { MetricChart } from "@/components/charts/MetricChart";
 
-
 import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarousel";
 import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
-import type { UserSocial } from "@/app/dashboard/types";
+
+import type { UnifiedSocialMetric, MetricConfig } from "@/app/dashboard/types";
 
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
 
 const supabase = createClient();
-
-// -------------------- Types --------------------
-import type { DashboardSocial, MetricConfig } from "@/app/dashboard/types";
 
 type ChartType = "line" | "bar" | "area" | "pie" | "radar";
 
@@ -102,7 +99,7 @@ function SocialChipBar({
   selectedPlatform,
   onSelect,
 }: {
-  socials: DashboardSocial[];
+  socials: UnifiedSocialMetric[];
   selectedPlatform: string | "all";
   onSelect: (platform: string | "all") => void;
 }) {
@@ -136,9 +133,9 @@ function SocialChipBar({
 
 // -------------------- Dashboard Page --------------------
 export default function DashboardPage() {
-  const [socials, setSocials] = useState<DashboardSocial[]>([]);
+  const [socials, setSocials] = useState<UnifiedSocialMetric[]>([]);
   const [selectedSocial, setSelectedSocial] =
-    useState<DashboardSocial | null>(null);
+    useState<UnifiedSocialMetric | null>(null);
   const [selectedPlatform, setSelectedPlatform] =
     useState<string | "all">("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -169,10 +166,8 @@ export default function DashboardPage() {
           }
         }
 
-        // Initial load
         await fetchAndNormalize(user.id);
 
-        // Realtime subscription to analytics table
         subscription = supabase
           .channel(`realtime-socials-${user.id}`, {
             config: {
@@ -247,21 +242,19 @@ export default function DashboardPage() {
   }, [socials]);
 
   const MOMENTUM_METRIC: MetricConfig = useMemo(() => {
-  const thisWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
+    const thisWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
+    const lastWeek = thisWeek || 1;
 
-  // MVP: we don't have real lastWeek yet, so use a safe baseline
-  const lastWeek = thisWeek || 1;
+    const momentum = Math.round((thisWeek / lastWeek) * 100 - 100);
 
-  const momentum = Math.round((thisWeek / lastWeek) * 100 - 100);
-
-  return {
-    key: "momentum",
-    label: "Momentum",
-    value: momentum,
-    description:
-      "Engagement velocity compared to last week (placeholder until real last-week data is added).",
-  };
-}, [socials]);
+    return {
+      key: "momentum",
+      label: "Momentum",
+      value: momentum,
+      description:
+        "Engagement velocity compared to last week (placeholder until real last-week data is added).",
+    };
+  }, [socials]);
 
   // -------------------- Render --------------------
   return (

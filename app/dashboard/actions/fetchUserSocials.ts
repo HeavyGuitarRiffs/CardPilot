@@ -1,31 +1,18 @@
 // app/dashboard/actions/fetchUserSocials.ts
 import { createClient } from "@/lib/supabase/client";
+import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 
-export interface DashboardSocial {
-  id: string;
-  platform: string;
-  handle: string;
-
-  followers: number;
-  linktree: boolean;
-  order_index: number;
-  created_at: string | null;
-
-  commentsToday: number;
-  commentsWeek: number;
-  commentsMonth: number;
-  posts: number;
-}
-
-export async function fetchUserSocials(userId: string): Promise<DashboardSocial[]> {
+export async function fetchUserSocials(
+  userId: string
+): Promise<UnifiedSocialMetric[]> {
   const supabase = createClient();
 
   // -----------------------------
-  // 1. Fetch all connected accounts
+  // 1. Fetch connected accounts
   // -----------------------------
   const { data: accounts, error: accErr } = await supabase
     .from("user_socials")
-    .select("id, platform, handle, followers, linktree, order_index, created_at")
+    .select("id, platform, handle, followers")
     .eq("user_id", userId)
     .order("order_index", { ascending: true });
 
@@ -36,11 +23,10 @@ export async function fetchUserSocials(userId: string): Promise<DashboardSocial[
 
   if (accounts.length === 0) return [];
 
-  // Extract all platforms
   const platforms = accounts.map((a) => a.platform ?? "");
 
   // -----------------------------
-  // 2. Fetch ALL analytics in ONE query
+  // 2. Fetch analytics (30 days)
   // -----------------------------
   const start30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -59,7 +45,7 @@ export async function fetchUserSocials(userId: string): Promise<DashboardSocial[
   }
 
   // -----------------------------
-  // 3. Aggregate analytics in memory
+  // 3. Aggregate analytics
   // -----------------------------
   const today = new Date().toISOString().slice(0, 10);
   const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -81,27 +67,17 @@ export async function fetchUserSocials(userId: string): Promise<DashboardSocial[
 
     const date = row.date;
 
-    // Today
-    if (date === today) {
-      grouped[p].today += row.comments_count ?? 0;
-    }
+    if (date === today) grouped[p].today += row.comments_count ?? 0;
+    if (date >= weekStart) grouped[p].week += row.comments_count ?? 0;
 
-    // Last 7 days
-    if (date >= weekStart) {
-      grouped[p].week += row.comments_count ?? 0;
-    }
-
-    // Last 30 days
     grouped[p].month += row.comments_count ?? 0;
-
-    // Posts (all-time)
     grouped[p].posts += row.posts_count ?? 0;
   }
 
   // -----------------------------
-  // 4. Build final DashboardSocial[]
+  // 4. Build UnifiedSocialMetric[]
   // -----------------------------
-  const results: DashboardSocial[] = accounts.map((acc) => {
+  const results: UnifiedSocialMetric[] = accounts.map((acc) => {
     const p = acc.platform ?? "";
     const g = grouped[p] ?? { today: 0, week: 0, month: 0, posts: 0 };
 
@@ -109,15 +85,25 @@ export async function fetchUserSocials(userId: string): Promise<DashboardSocial[
       id: acc.id,
       platform: p,
       handle: acc.handle ?? "",
-      followers: acc.followers ?? 0,
-      linktree: acc.linktree ?? false,
-      order_index: acc.order_index ?? 0,
-      created_at: acc.created_at ?? null,
 
+      followers: acc.followers ?? 0,
+
+      comments: g.month, // total 30-day comments
       commentsToday: g.today,
       commentsWeek: g.week,
       commentsMonth: g.month,
+      commentsLastWeek: 0, // placeholder until you add last-week data
+
+      likes: 0, // placeholder (no likes in this table)
+      likesToday: 0,
+      likesDelta: 0,
+
       posts: g.posts,
+
+      momentum: 0, // placeholder until you add real momentum
+      engagementChange: 0,
+
+      oauth: undefined,
     };
   });
 
