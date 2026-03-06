@@ -20,7 +20,7 @@ export const CONNECT_PLATFORMS: ConnectPlatform[] = [
     platform: "youtube",
     name: "YouTube",
     icon: <SiYoutube size={20} />,
-    connectUrl: "/api/auth/youtube",
+    connectUrl: "/api/auth/youtube", // ← START OAuth here
   },
   {
     platform: "github",

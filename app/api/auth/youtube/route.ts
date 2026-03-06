@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const clientId = process.env.GOOGLE_CLIENT_ID!;
-  const redirectUri = process.env.YOUTUBE_REDIRECT_URI!;
+  const redirectUri = "https://cardpilot1.vercel.app/api/auth/callback/youtube";
 
   const scope = [
     "https://www.googleapis.com/auth/youtube.readonly",
