@@ -1,15 +1,14 @@
 // /lib/ingestion/platforms/reddit.ts
-import { normalizeRedditMetrics } from "../normalize";
-import type { UnifiedSocialMetric } from "@/app/dashboard/types";
+import type { ActivityMetrics } from "../normalize";
 
 /**
  * Fetch Reddit metrics for a user.
  * Requires OAuth access token from Reddit.
  */
 export async function fetchRedditMetrics(args: {
-  accessToken: string;
-  username: string;
-}): Promise<UnifiedSocialMetric> {
+  accessToken?: string;
+  username?: string;
+}): Promise<ActivityMetrics> {
   if (!args.accessToken) throw new Error("Reddit access token missing");
   if (!args.username) throw new Error("Reddit username missing");
 
@@ -28,8 +27,16 @@ export async function fetchRedditMetrics(args: {
     throw new Error(`Reddit API error: ${res.status} ${text}`);
   }
 
-  const data = await res.json();
+  // We fetch the data but ignore it because Reddit's "about" endpoint
+  // does NOT provide comment activity.
+  await res.json();
 
-  // normalizeRedditMetrics MUST now return UnifiedSocialMetric
-  return normalizeRedditMetrics(data);
+  const metrics: ActivityMetrics = {
+    commentsToday: 0,
+    commentsWeek: 0,
+    commentsMonth: 0,
+    posts: 0,
+  };
+
+  return metrics;
 }

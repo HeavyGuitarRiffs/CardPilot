@@ -1,6 +1,6 @@
 // /lib/ingestion/saveMetrics.ts
 import { createClient } from "@supabase/supabase-js";
-import type { NormalizedMetrics } from "./normalize";
+import type { ActivityMetrics } from "./normalize";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,32 +11,30 @@ type SaveArgs = {
   userId: string;
   socialId: string;
   platform: string;
-  metrics: NormalizedMetrics;
+  metrics: ActivityMetrics;
 };
 
 export async function saveMetrics(args: SaveArgs) {
   const { userId, socialId, platform, metrics } = args;
 
-  const { error: dailyError } = await supabase.from("social_daily_stats").upsert(
+  const { error } = await supabase.from("social_daily_stats").upsert(
     {
       user_id: userId,
       social_id: socialId,
       platform,
-      date: metrics.date,
-      followers: metrics.followers ?? null,
-      views: metrics.views ?? null,
-      likes: metrics.likes ?? null,
-      comments: metrics.comments ?? null,
-      shares: metrics.shares ?? null,
-      impressions: metrics.impressions ?? null,
-      engagement_rate: metrics.engagementRate ?? null,
+      // You may want to add a date here if needed:
+      // date: new Date().toISOString().slice(0, 10),
+      comments_today: metrics.commentsToday,
+      comments_week: metrics.commentsWeek,
+      comments_month: metrics.commentsMonth,
+      posts: metrics.posts,
     },
     {
       onConflict: "user_id,social_id,platform,date",
     }
   );
 
-  if (dailyError) {
-    console.error("Error saving daily stats", dailyError);
+  if (error) {
+    console.error("Error saving daily stats", error);
   }
 }

@@ -1,16 +1,30 @@
+// /lib/ingestion/registry.ts
+
+import { ActivityMetrics } from "./normalize";
+
 import { fetchYouTubeMetrics } from "./platforms/youtube";
 import { fetchInstagramMetrics } from "./platforms/instagram";
+import { fetchRedditMetrics } from "./platforms/reddit";
+import { fetchTwitterMetrics } from "./platforms/twitter";
+import { fetchGitHubMetrics } from "./platforms/github";
+import { fetchPatreonMetrics } from "./platforms/patreon";
 
-// Accept ANY function signature, no any, no unknown, no errors.
-export type IngestionFn = (...args: never[]) => Promise<unknown>;
+import { fetchProductHuntMetrics } from "./platforms/producthunt";
+import { fetchHackerNewsMetrics } from "./platforms/hackernews";
 
-const registry = {
+// All ingestion functions accept an object and return ActivityMetrics
+export type IngestionFn = (args: object) => Promise<ActivityMetrics>;
+
+export const ingestionRegistry = {
   youtube: fetchYouTubeMetrics,
   instagram: fetchInstagramMetrics,
-};
+  reddit: fetchRedditMetrics,
+  twitter: fetchTwitterMetrics,
+  github: fetchGitHubMetrics,
+  patreon: fetchPatreonMetrics,
 
-// Fully typed, no circular reference, no satisfies recursion
-export const ingestionRegistry: { [K in keyof typeof registry]: IngestionFn } =
-  registry;
+  producthunt: fetchProductHuntMetrics,
+  hackernews: fetchHackerNewsMetrics,
+} as const;
 
-export type PlatformKey = keyof typeof registry;
+export type PlatformKey = keyof typeof ingestionRegistry;

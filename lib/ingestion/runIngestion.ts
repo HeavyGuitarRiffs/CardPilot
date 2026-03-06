@@ -1,81 +1,32 @@
-import { ingestionRegistry, PlatformKey } from "./registry";
-import { refreshTokenIfNeeded } from "./oauth";
-import { saveMetrics } from "./saveMetrics";
-import { createClient } from "@supabase/supabase-js";
-import { NormalizedMetrics } from "./normalize";
+// /lib/ingestion/registry.ts
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { ActivityMetrics } from "./normalize";
 
-type ConnectedSocial = {
-  id: string;
-  user_id: string;
-  platform: PlatformKey;
-  access_token: string;
-  refresh_token: string | null;
-  expires_at: number | null;
+// OAuth platforms
+import { fetchYouTubeMetrics } from "./platforms/youtube";
+import { fetchInstagramMetrics } from "./platforms/instagram";
+import { fetchRedditMetrics } from "./platforms/reddit";
+import { fetchTwitterMetrics } from "./platforms/twitter";
+import { fetchGitHubMetrics } from "./platforms/github";
+import { fetchPatreonMetrics } from "./platforms/patreon";
 
-  // Platform-specific fields from your DB
-  channelId?: string | null;      // YouTube
-  igBusinessId?: string | null;   // Instagram
-};
+// Non‑OAuth platforms
+import { fetchProductHuntMetrics } from "./platforms/producthunt";
+import { fetchHackerNewsMetrics } from "./platforms/hackernews";
 
-export async function runIngestion() {
-  const { data: socials, error } = await supabase
-    .from("connected_socials")
-    .select("*")
-    .returns<ConnectedSocial[]>();
+// All ingestion functions accept an object and return ActivityMetrics
+export type IngestionFn = (args: Record<string, unknown>) => Promise<ActivityMetrics>;
 
-  if (error) throw error;
-  if (!socials || socials.length === 0) return;
+export const ingestionRegistry = {
+  youtube: fetchYouTubeMetrics,
+  instagram: fetchInstagramMetrics,
+  reddit: fetchRedditMetrics,
+  twitter: fetchTwitterMetrics,
+  github: fetchGitHubMetrics,
+  patreon: fetchPatreonMetrics,
 
-  for (const social of socials) {
-    try {
-      const { platform, access_token, refresh_token, expires_at } = social;
+  producthunt: fetchProductHuntMetrics,
+  hackernews: fetchHackerNewsMetrics,
+} as const;
 
-      const { accessToken: validAccessToken, updatedTokens } =
-        await refreshTokenIfNeeded({
-          platform,
-          accessToken: access_token,
-          refreshToken: refresh_token,
-          expiresAt: expires_at ? String(expires_at) : null, // 🔥 FIXED
-          socialId: social.id,
-        });
-
-      // 🔥 FIXED — platform is now PlatformKey, registry keys match
-    const ingestionFn = ingestionRegistry[platform] as (
-  args: unknown
-) => Promise<unknown>;
-
-const metrics = (await ingestionFn({
-  accessToken: validAccessToken,
-
-  ...(platform === "youtube" && social.channelId
-    ? { channelId: social.channelId }
-    : {}),
-
-  ...(platform === "instagram" && social.igBusinessId
-    ? { igBusinessId: social.igBusinessId }
-    : {}),
-})) as NormalizedMetrics;
-
-      await saveMetrics({
-        userId: social.user_id,
-        socialId: social.id,
-        platform,
-        metrics,
-      });
-
-      if (updatedTokens) {
-        await supabase
-          .from("connected_socials")
-          .update(updatedTokens)
-          .eq("id", social.id);
-      }
-    } catch (err) {
-      console.error("Ingestion error for social", social.id, err);
-    }
-  }
-}
+export type PlatformKey = keyof typeof ingestionRegistry;

@@ -1,5 +1,3 @@
-// lib/platforms/platformRegistry.ts
-
 export const PLATFORM_REGISTRY = {
   youtube: {
     id: "youtube",
@@ -36,6 +34,22 @@ export const PLATFORM_REGISTRY = {
     name: "Patreon",
     shortName: "Patreon",
     color: "#FF424D",
+  },
+
+  // ⭐ NEW: Product Hunt
+  producthunt: {
+    id: "producthunt",
+    name: "Product Hunt",
+    shortName: "PH",
+    color: "#DA552F", // official PH orange
+  },
+
+  // ⭐ NEW: Hacker News
+  hackernews: {
+    id: "hackernews",
+    name: "Hacker News",
+    shortName: "HN",
+    color: "#FF6600", // official HN orange
   },
 } as const;
 

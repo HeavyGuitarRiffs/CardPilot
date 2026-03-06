@@ -1,4 +1,3 @@
-// lib/platforms/connectList.ts
 import {
   SiYoutube,
   SiGithub,
@@ -6,7 +5,10 @@ import {
   SiReddit,
   SiX,
   SiPatreon,
+  SiProducthunt,
 } from "react-icons/si";
+
+import { FaHackerNews } from "react-icons/fa";
 
 export type ConnectPlatform = {
   platform: string;
@@ -20,7 +22,7 @@ export const CONNECT_PLATFORMS: ConnectPlatform[] = [
     platform: "youtube",
     name: "YouTube",
     icon: <SiYoutube size={20} />,
-    connectUrl: "/api/auth/youtube", // ← START OAuth here
+    connectUrl: "/api/auth/youtube",
   },
   {
     platform: "github",
@@ -51,5 +53,21 @@ export const CONNECT_PLATFORMS: ConnectPlatform[] = [
     name: "Patreon",
     icon: <SiPatreon size={20} />,
     connectUrl: "/api/auth/patreon",
+  },
+
+  // ⭐ NEW: Product Hunt
+  {
+    platform: "producthunt",
+    name: "Product Hunt",
+    icon: <SiProducthunt size={20} />,
+    connectUrl: "/api/connect/producthunt",
+  },
+
+  // ⭐ NEW: Hacker News
+  {
+    platform: "hackernews",
+    name: "Hacker News",
+    icon: <FaHackerNews size={20} />,
+    connectUrl: "/api/connect/hackernews",
   },
 ];

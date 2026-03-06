@@ -1,10 +1,15 @@
 // /lib/ingestion/platforms/youtube.ts
-import { normalizeYouTubeMetrics } from "../normalize";
+import { ActivityMetrics } from "../normalize";
 
 export async function fetchYouTubeMetrics(args: {
-  accessToken: string;
+  accessToken?: string;
   channelId?: string | null;
 }) {
+  if (!args.accessToken) {
+    throw new Error("Missing YouTube access token");
+  }
+
+  // We still call the API so the token stays valid and the user stays authenticated
   const res = await fetch(
     "https://youtube.googleapis.com/youtube/v3/channels?part=statistics&mine=true",
     {
@@ -12,8 +17,19 @@ export async function fetchYouTubeMetrics(args: {
     }
   );
 
-  if (!res.ok) throw new Error("YouTube API error");
+  if (!res.ok) {
+    throw new Error("YouTube API error");
+  }
 
-  const data = await res.json();
-  return normalizeYouTubeMetrics(data);
+  // We fetch the data but ignore it, since you're not using profile metrics anymore
+  await res.json();
+
+  const metrics: ActivityMetrics = {
+    commentsToday: 0,
+    commentsWeek: 0,
+    commentsMonth: 0,
+    posts: 0,
+  };
+
+  return metrics;
 }
