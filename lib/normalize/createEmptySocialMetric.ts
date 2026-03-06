@@ -1,13 +1,12 @@
-// lib/normalize/createEmptySocialMetric.ts
 import type { RealtimeSocialMetric, OAuthData } from "@/app/dashboard/types";
 
 const createEmptySocialMetric = (): RealtimeSocialMetric => {
   const emptyOAuth: OAuthData = {
     access_token: "",
-    refresh_token: undefined,
-    expires_at: undefined,
-    scope: undefined,
-    token_type: undefined,
+    refresh_token: null,
+    expires_at: null,
+    scope: null,
+    token_type: null,
     raw: {},
   };
 

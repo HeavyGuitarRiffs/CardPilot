@@ -55,7 +55,6 @@ export async function fetchTwitterMetrics(args: {
 
     followers: metrics.followers_count ?? 0,
 
-    // Twitter API does not provide comment counts directly
     comments: 0,
     commentsToday: 0,
     commentsWeek: 0,
@@ -73,9 +72,9 @@ export async function fetchTwitterMetrics(args: {
 
     oauth: {
       access_token: args.accessToken,
-      refresh_token: undefined,
-      expires_at: undefined,
-      scope: undefined,
+      refresh_token: null,
+      expires_at: null,
+      scope: null,
       token_type: "bearer",
       raw: {},
     },

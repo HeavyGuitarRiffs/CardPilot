@@ -1,4 +1,3 @@
-// lib/normalize/publicNormalize.ts
 import type { RawSocial } from "@/app/dashboard/connect/types";
 import type { RealtimeSocialMetric } from "@/app/dashboard/types";
 import createEmptySocialMetric from "@/lib/normalize/createEmptySocialMetric";
@@ -27,10 +26,10 @@ export function publicNormalize(raw: RawSocial): RealtimeSocialMetric {
 
     oauth: {
       access_token: "",
-      refresh_token: undefined,
-      expires_at: undefined,
-      scope: undefined,
-      token_type: undefined,
+      refresh_token: null,
+      expires_at: null,
+      scope: null,
+      token_type: null,
       raw: {},
     },
 

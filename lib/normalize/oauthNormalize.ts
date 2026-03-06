@@ -1,4 +1,3 @@
-// lib/normalize/oauthNormalize.ts
 import type { RawSocial } from "@/app/dashboard/connect/types";
 import type { RealtimeSocialMetric, OAuthData } from "@/app/dashboard/types";
 import createEmptySocialMetric from "@/lib/normalize/createEmptySocialMetric";
@@ -7,11 +6,11 @@ export function oauthNormalize(raw: RawSocial): RealtimeSocialMetric {
   const base = createEmptySocialMetric();
 
   const oauth: OAuthData = {
-    access_token: raw.oauth?.access_token ?? "",
-    refresh_token: raw.oauth?.refresh_token ?? undefined,
-    expires_at: raw.oauth?.expires_at ?? undefined,
-    scope: raw.oauth?.scope ?? undefined,
-    token_type: raw.oauth?.token_type ?? undefined,
+    access_token: raw.oauth?.access_token ?? null,
+    refresh_token: raw.oauth?.refresh_token ?? null,
+    expires_at: raw.oauth?.expires_at ?? null,
+    scope: raw.oauth?.scope ?? null,
+    token_type: raw.oauth?.token_type ?? null,
     raw: raw.oauth?.raw ?? {},
   };
 

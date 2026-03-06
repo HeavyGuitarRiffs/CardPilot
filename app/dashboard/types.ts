@@ -1,5 +1,5 @@
 // ---------------------------------------------
-// ActivityMetrics returned from ingestion + DB
+// JSON type (Supabase-compatible)
 // ---------------------------------------------
 export type Json =
   | string
@@ -9,6 +9,9 @@ export type Json =
   | { [key: string]: Json }
   | Json[];
 
+// ---------------------------------------------
+// Dashboard Social (aggregated metrics)
+// ---------------------------------------------
 export interface DashboardSocial {
   id: string;
   platform: string | null;
@@ -21,10 +24,14 @@ export interface DashboardSocial {
   posts: number;
 }
 
-// Chart + metric units
+// ---------------------------------------------
+// Metric units for charts
+// ---------------------------------------------
 export type MetricUnit = "count" | "minutes" | "hours" | "percent";
 
-// Used for metric drawers + charts
+// ---------------------------------------------
+// Metric config for drawers + charts
+// ---------------------------------------------
 export interface MetricConfig {
   key: string;
   label: string;
@@ -33,7 +40,9 @@ export interface MetricConfig {
   unit?: MetricUnit;
 }
 
-// Full analytics for each social account
+// ---------------------------------------------
+// Analytics summary for each social account
+// ---------------------------------------------
 export interface SocialAnalytics {
   id: string;
   platform: string | null;
@@ -46,6 +55,22 @@ export interface SocialAnalytics {
 
   momentum?: number;
 }
+
+// ---------------------------------------------
+// OAuth data (shared across all platforms)
+// ---------------------------------------------
+export interface OAuthData {
+  access_token: string | null;
+  refresh_token: string | null;
+  expires_at: number | null;
+  scope: string | null;
+  token_type: string | null;
+  raw: Record<string, Json>;
+}
+
+// ---------------------------------------------
+// RealtimeSocialMetric (normalized ingestion)
+// ---------------------------------------------
 export interface RealtimeSocialMetric {
   platform: string;
   handle: string | null;
@@ -71,7 +96,7 @@ export interface RealtimeSocialMetric {
   posts: number;
 
   oauth: {
-    access_token: string;
+    access_token: string | null;
     refresh_token: string | null;
     expires_at: number | null;
     scope: string | null;
@@ -79,14 +104,10 @@ export interface RealtimeSocialMetric {
     raw: Record<string, Json>;
   };
 }
-export interface OAuthData {
-  access_token: string | null;
-  refresh_token: string | null;
-  expires_at: number | null;
-  scope: string | null;
-  token_type: string | null;
-  raw: Record<string, Json>;
-}
+
+// ---------------------------------------------
+// UnifiedSocialMetric (DB → dashboard)
+// ---------------------------------------------
 export interface UnifiedSocialMetric {
   id: string;
   platform: string;
