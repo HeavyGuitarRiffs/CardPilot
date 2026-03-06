@@ -25,11 +25,17 @@ import type { UnifiedSocialMetric, MetricConfig } from "@/app/dashboard/types";
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
 
+import {
+  PLATFORM_REGISTRY,
+  type PlatformId,
+} from "@/lib/platforms/platformRegistry";
+
 const supabase = createClient();
 
-type ChartType = "line" | "bar" | "area" | "pie" | "radar";
+// MVP chart types
+type ChartType = "line" | "bar" | "area";
 
-// -------------------- Chart Switcher --------------------
+/* -------------------- Chart Switcher -------------------- */
 function ChartSwitcher({
   chartType,
   onChange,
@@ -41,8 +47,6 @@ function ChartSwitcher({
     { type: "line", label: "Line" },
     { type: "bar", label: "Bar" },
     { type: "area", label: "Area" },
-    { type: "pie", label: "Pie" },
-    { type: "radar", label: "Radar" },
   ] as const;
 
   return (
@@ -61,7 +65,7 @@ function ChartSwitcher({
   );
 }
 
-// -------------------- Metric Drawer --------------------
+/* -------------------- Metric Drawer -------------------- */
 function MetricDrawer({ metric }: { metric: MetricConfig }) {
   const [chartType, setChartType] = useState<ChartType>("line");
   const displayValue =
@@ -93,7 +97,7 @@ function MetricDrawer({ metric }: { metric: MetricConfig }) {
   );
 }
 
-// -------------------- Social Chip Bar --------------------
+/* -------------------- Social Chip Bar (UPDATED) -------------------- */
 function SocialChipBar({
   socials,
   selectedPlatform,
@@ -124,14 +128,14 @@ function SocialChipBar({
           className="whitespace-nowrap"
           onClick={() => onSelect(platform)}
         >
-          {platform}
+          {PLATFORM_REGISTRY[platform as PlatformId]?.name ?? platform}
         </Button>
       ))}
     </div>
   );
 }
 
-// -------------------- Dashboard Page --------------------
+/* -------------------- Dashboard Page -------------------- */
 export default function DashboardPage() {
   const [socials, setSocials] = useState<UnifiedSocialMetric[]>([]);
   const [selectedSocial, setSelectedSocial] =
@@ -169,18 +173,13 @@ export default function DashboardPage() {
         await fetchAndNormalize(user.id);
 
         subscription = supabase
-          .channel(`realtime-socials-${user.id}`, {
-            config: {
-              broadcast: { ack: false },
-              presence: { key: user.id },
-            },
-          })
+          .channel(`realtime-socials-${user.id}`)
           .on(
             "postgres_changes",
             {
               event: "*",
               schema: "public",
-              table: "social_metrics_daily",
+              table: "social_metrics_daily_v2",
               filter: `user_id=eq.${user.id}`,
             },
             () => fetchAndNormalize(user.id)
@@ -206,7 +205,7 @@ export default function DashboardPage() {
       ? socials
       : socials.filter((s) => s.platform === selectedPlatform);
 
-  // -------------------- Metrics --------------------
+  /* -------------------- Metrics -------------------- */
   const METRICS: MetricConfig[] = useMemo(() => {
     const commentsToday = socials.reduce((sum, s) => sum + s.commentsToday, 0);
     const commentsWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
@@ -256,7 +255,7 @@ export default function DashboardPage() {
     };
   }, [socials]);
 
-  // -------------------- Render --------------------
+  /* -------------------- Render -------------------- */
   return (
     <main className="min-h-screen bg-background px-6 py-10">
       <div className="mx-auto max-w-7xl space-y-10">

@@ -17,19 +17,25 @@ type Props = {
 };
 
 /* -------------------- Component -------------------- */
-export function ChartLegend({ data, label, unit = "count" }: Props) {
+export function ChartLegend({ data = [], label, unit = "count" }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  if (!data.length) return null;
+  // If no data, show a graceful placeholder
+  if (!data.length || !data.some((d) => d.value > 0)) {
+    return (
+      <div className="flex items-center justify-between text-xl font-bold opacity-60">
+        <span>{label}</span>
+        <span className="text-sm">No recent data</span>
+      </div>
+    );
+  }
 
   const last = data[data.length - 1];
   const prev = data.length > 1 ? data[data.length - 2] : last;
 
   const pct =
-    prev.value === 0
-      ? 0
-      : ((last.value - prev.value) / prev.value) * 100;
+    prev.value === 0 ? 0 : ((last.value - prev.value) / prev.value) * 100;
 
   const isUp = pct > 0;
   const isDown = pct < 0;

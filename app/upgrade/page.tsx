@@ -1,58 +1,36 @@
 // /app/upgrade/page.tsx
 "use client";
 
-import { useState } from "react";
+import PayPalCheckout from "@/components/PayPalCheckout";
 
 const PLANS = [
   {
     id: "monthly",
     label: "Monthly",
-    price: "$10",
-    description: "Perfect to try Qubit for a month.",
-    stripePriceEnv: "STRIPE_PRICE_MONTHLY",
+    price: "7",
+    description: "Perfect to try for a month.",
   },
   {
     id: "quarterly",
     label: "3 Months",
-    price: "$30",
+    price: "30",
     description: "Commit to building momentum.",
-    stripePriceEnv: "STRIPE_PRICE_QUARTERLY",
   },
   {
     id: "semiannual",
     label: "6 Months",
-    price: "$75",
+    price: "75",
     description: "For serious creators.",
-    stripePriceEnv: "STRIPE_PRICE_SEMIANNUAL",
   },
   {
     id: "annual",
     label: "Yearly",
-    price: "$149",
+    price: "149",
     description: "Best value for long-term growth.",
-    stripePriceEnv: "STRIPE_PRICE_ANNUAL",
   },
 ];
 
 export default function UpgradePage() {
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-
-  async function handleCheckout(planId: string) {
-    try {
-      setLoadingPlan(planId);
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        body: JSON.stringify({ planId }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } finally {
-      setLoadingPlan(null);
-    }
-  }
-
   return (
     <main className="min-h-screen bg-base-100 text-base-content px-4 py-16 flex justify-center">
       <div className="max-w-4xl w-full space-y-10">
@@ -69,15 +47,16 @@ export default function UpgradePage() {
             <div key={plan.id} className="card bg-base-200 shadow-md">
               <div className="card-body items-center text-center space-y-3">
                 <h2 className="card-title">{plan.label}</h2>
-                <p className="text-2xl font-bold">{plan.price}</p>
+                <p className="text-2xl font-bold">${plan.price}</p>
                 <p className="text-sm opacity-70">{plan.description}</p>
-                <button
-                  className="btn btn-primary btn-sm mt-2"
-                  disabled={loadingPlan === plan.id}
-                  onClick={() => handleCheckout(plan.id)}
-                >
-                  {loadingPlan === plan.id ? "Redirecting..." : "Upgrade"}
-                </button>
+
+                {/* PayPal Button */}
+                <div className="w-full mt-2">
+                  <PayPalCheckout
+                    plan={plan.id}
+                    amount={plan.price}
+                  />
+                </div>
               </div>
             </div>
           ))}

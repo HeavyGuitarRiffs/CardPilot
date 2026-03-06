@@ -1,3 +1,4 @@
+//components\dashboard\SocialCardGrid.tsx
 "use client";
 
 import React from "react";
@@ -5,32 +6,24 @@ import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+import {
+  PLATFORM_REGISTRY,
+  type PlatformId,
+} from "@/lib/platforms/platformRegistry";
+
+function getPlatformName(platform: PlatformId): string {
+  return PLATFORM_REGISTRY[platform]?.name ?? platform;
+}
+
+function formatCompact(n: number) {
+  return Intl.NumberFormat("en-US", { notation: "compact" }).format(n);
+}
+
 interface Props {
   socials: UnifiedSocialMetric[];
   onSelect?: (platform: UnifiedSocialMetric["platform"]) => void;
   selectedSocial?: string;
   loading?: boolean;
-}
-
-function getPlatformName(platform: UnifiedSocialMetric["platform"]): string {
-  switch (platform) {
-    case "youtube":
-      return "YouTube";
-    case "twitter":
-      return "Twitter";
-    case "instagram":
-      return "Instagram";
-    case "tiktok":
-      return "TikTok";
-    case "linkedin":
-      return "LinkedIn";
-    default:
-      return platform;
-  }
-}
-
-function formatCompact(n: number) {
-  return Intl.NumberFormat("en-US", { notation: "compact" }).format(n);
 }
 
 export function SocialCardGrid({
@@ -79,7 +72,7 @@ export function SocialCardGrid({
           >
             <CardContent className="pt-4 space-y-1">
               <p className="text-sm text-muted-foreground">
-                {getPlatformName(social.platform)}
+                {getPlatformName(social.platform as PlatformId)}
               </p>
               <p className="font-semibold">@{social.handle}</p>
               <p className="text-xl font-bold">

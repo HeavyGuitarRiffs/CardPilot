@@ -14,16 +14,21 @@ type Props = {
   data: TimeSeriesPoint[];
   big?: boolean;
   unit?: "hours" | "minutes" | "count" | "percent";
-  social?: string; // optional for future social-picker integration
+  social?: string;
 };
 
 /* -------------------- Component -------------------- */
-export function ChartStats({ data, big = false, unit = "count", social }: Props) {
+export function ChartStats({
+  data = [],
+  big = false,
+  unit = "count",
+  social,
+}: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   /* -----------------------------
-     Number formatter (unit-aware)
+     Number formatter
   ----------------------------- */
   function formatNumber(n: number): string {
     switch (unit) {
@@ -51,7 +56,7 @@ export function ChartStats({ data, big = false, unit = "count", social }: Props)
   ----------------------------- */
   function formatDate(d: string) {
     const date = new Date(d);
-    if (isNaN(date.getTime())) return d;
+    if (isNaN(date.getTime())) return "-";
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -59,10 +64,10 @@ export function ChartStats({ data, big = false, unit = "count", social }: Props)
   }
 
   /* -----------------------------
-     Compute stats
+     Compute stats (resilient)
   ----------------------------- */
   const stats = useMemo(() => {
-    if (!data.length) {
+    if (!data.length || !data.some((d) => d.value > 0)) {
       return {
         avg7: 0,
         sinceLastWeek: 0,

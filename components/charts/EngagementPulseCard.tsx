@@ -21,8 +21,8 @@ interface EngagementPulseCardProps {
   shareable?: boolean;
   isMock?: boolean;
   unit?: "hours" | "minutes" | "count" | "percent";
-  social?: string; // future social-picker integration
-  chart?: React.ReactNode; // future chart injection
+  social?: string;
+  chart?: React.ReactNode;
 }
 
 export function EngagementPulseCard({
@@ -39,7 +39,7 @@ export function EngagementPulseCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   /* -----------------------------
-     Number formatter (unit-aware)
+     Number formatter
   ----------------------------- */
   function formatNumber(n: number): string {
     switch (unit) {
@@ -63,7 +63,7 @@ export function EngagementPulseCard({
   }
 
   /* -----------------------------
-     Human-readable range label
+     Range label
   ----------------------------- */
   const rangeLabelMap: Record<string, string> = {
     "7d": "Last 7 Days",
@@ -102,6 +102,9 @@ export function EngagementPulseCard({
     }
   };
 
+  /* -----------------------------
+     Render
+  ----------------------------- */
   return (
     <Card ref={cardRef} className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -117,12 +120,11 @@ export function EngagementPulseCard({
       </CardHeader>
 
       <CardContent className="min-h-[150px]">
-        {/* Chart injection (future) */}
         {chart ? (
           chart
         ) : (
           <div className="w-full h-48 flex items-center justify-center bg-muted/20 rounded-lg text-muted-foreground">
-            {isMock ? "Chart Preview (Mock Data)" : "Live Chart"}
+            {isMock ? "Chart Preview (Mock Data)" : "No data available"}
           </div>
         )}
       </CardContent>

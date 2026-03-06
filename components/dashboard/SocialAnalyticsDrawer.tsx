@@ -14,7 +14,13 @@ import { MetricChart } from "@/components/charts/MetricChart";
 import type { UnifiedSocialMetric } from "@/app/dashboard/types";
 import { ShareChartModal } from "./ShareChartModal";
 
-type ChartType = "line" | "bar" | "area" | "pie" | "radar";
+import {
+  PLATFORM_REGISTRY,
+  type PlatformId,
+} from "@/lib/platforms/platformRegistry";
+
+// MVP chart types only
+type ChartType = "line" | "bar" | "area";
 
 type Props = {
   open: boolean;
@@ -28,6 +34,10 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
 
   if (!social) return null;
 
+  const platformName =
+    PLATFORM_REGISTRY[social.platform as PlatformId]?.name ??
+    social.platform.toUpperCase();
+
   const chartUrl = `https://yourapp.com/share/${social.platform}/${social.handle}`;
 
   return (
@@ -35,7 +45,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
       <Drawer open={open} onOpenChange={onClose}>
         <DrawerContent className="max-h-[90vh] overflow-y-auto">
           <DrawerHeader>
-            <DrawerTitle>{social.platform?.toUpperCase() ?? ""}</DrawerTitle>
+            <DrawerTitle>{platformName}</DrawerTitle>
             <DrawerDescription>
               {social.handle ? `@${social.handle}` : ""}
             </DrawerDescription>
@@ -55,6 +65,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               chartType={chartType}
               selectedSocial={social.platform}
               rangeLabel="Last 30 days"
+              accountId={social.id}
             />
 
             {/* Comments */}
@@ -70,6 +81,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               chartType={chartType}
               selectedSocial={social.platform}
               rangeLabel="Last 30 days"
+              accountId={social.id}
             />
 
             {/* Likes */}
@@ -85,6 +97,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               chartType={chartType}
               selectedSocial={social.platform}
               rangeLabel="Last 30 days"
+              accountId={social.id}
             />
 
             {/* Chart type selector */}
@@ -92,8 +105,6 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
               <Button onClick={() => setChartType("line")}>Line</Button>
               <Button onClick={() => setChartType("bar")}>Bar</Button>
               <Button onClick={() => setChartType("area")}>Area</Button>
-              <Button onClick={() => setChartType("pie")}>Pie</Button>
-              <Button onClick={() => setChartType("radar")}>Radar</Button>
             </div>
 
             <Button onClick={() => setShareOpen(true)}>Share Chart</Button>
@@ -105,7 +116,7 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         chartUrl={chartUrl}
-        title={social.platform ?? ""}
+        title={platformName}
         subtitle={social.handle ? `@${social.handle}` : ""}
       />
     </>
