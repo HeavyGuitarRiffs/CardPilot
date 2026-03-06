@@ -27,5 +27,5 @@ export async function GET(req: Request) {
   // TODO: Save tokens to DB for the logged‑in user
   // e.g. await saveYouTubeTokens(userId, tokens)
 
-  return NextResponse.redirect("/dashboard?connected=youtube");
+  return NextResponse.redirect("https://cardpilot1.vercel.app/dashboard?connected=youtube");
 }
