@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import type { UnifiedSocialMetric } from "@/app/dashboard/types";
+import type { SocialAnalytics } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  socials: UnifiedSocialMetric[];
+  socials: SocialAnalytics[];
   intervalMs?: number;
   onSelect?: (platform: string) => void;
   loading?: boolean;
@@ -34,7 +34,7 @@ function TrendArrow({ delta }: { delta: number }) {
   );
 }
 
-function PlatformBadge({ platform }: { platform: UnifiedSocialMetric["platform"] }) {
+function PlatformBadge({ platform }: { platform: SocialAnalytics["platform"] }) {
   const labelMap: Record<string, string> = {
     youtube: "YouTube",
     twitter: "Twitter",
@@ -47,7 +47,7 @@ function PlatformBadge({ platform }: { platform: UnifiedSocialMetric["platform"]
 
   return (
     <span className="text-xs text-muted-foreground uppercase tracking-wide">
-      {labelMap[platform] ?? platform}
+      {labelMap[platform ?? ""] ?? platform}
     </span>
   );
 }
@@ -123,7 +123,7 @@ export function SocialTickerCarousel({
             <Card
               key={`${social.platform}-${social.handle}`}
               className="min-w-[240px] shrink-0 cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => onSelect?.(social.platform)}
+              onClick={() => onSelect?.(social.platform ?? "")}
             >
               <CardContent className="pt-4 space-y-1">
                 <PlatformBadge platform={social.platform} />

@@ -1,8 +1,7 @@
-//components\dashboard\SocialCardGrid.tsx
 "use client";
 
 import React from "react";
-import type { UnifiedSocialMetric } from "@/app/dashboard/types";
+import type { SocialAnalytics } from "@/app/dashboard/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -20,8 +19,8 @@ function formatCompact(n: number) {
 }
 
 interface Props {
-  socials: UnifiedSocialMetric[];
-  onSelect?: (platform: UnifiedSocialMetric["platform"]) => void;
+  socials: SocialAnalytics[];
+  onSelect?: (platform: SocialAnalytics["platform"]) => void;
   selectedSocial?: string;
   loading?: boolean;
 }

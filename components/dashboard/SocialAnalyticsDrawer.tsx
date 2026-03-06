@@ -11,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { MetricChart } from "@/components/charts/MetricChart";
-import type { UnifiedSocialMetric } from "@/app/dashboard/types";
+import type { SocialAnalytics } from "@/app/dashboard/types";
 import { ShareChartModal } from "./ShareChartModal";
 
 import {
@@ -25,7 +25,7 @@ type ChartType = "line" | "bar" | "area";
 type Props = {
   open: boolean;
   onClose: () => void;
-  social: UnifiedSocialMetric | null;
+  social: SocialAnalytics | null;
 };
 
 export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
@@ -36,7 +36,8 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
 
   const platformName =
     PLATFORM_REGISTRY[social.platform as PlatformId]?.name ??
-    social.platform.toUpperCase();
+    social.platform?.toUpperCase() ??
+    "Unknown";
 
   const chartUrl = `https://yourapp.com/share/${social.platform}/${social.handle}`;
 
@@ -60,10 +61,9 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
                 value: social.followers,
                 description: "Follower count",
                 unit: "count",
-                social: social.platform,
               }}
               chartType={chartType}
-              selectedSocial={social.platform}
+              selectedSocial={social.platform ?? undefined}
               rangeLabel="Last 30 days"
               accountId={social.id}
             />
@@ -76,10 +76,9 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
                 value: social.comments,
                 description: "Comment activity",
                 unit: "count",
-                social: social.platform,
               }}
               chartType={chartType}
-              selectedSocial={social.platform}
+              selectedSocial={social.platform ?? undefined}
               rangeLabel="Last 30 days"
               accountId={social.id}
             />
@@ -92,10 +91,9 @@ export function SocialAnalyticsDrawer({ open, onClose, social }: Props) {
                 value: social.likes,
                 description: "Like activity",
                 unit: "count",
-                social: social.platform,
               }}
               chartType={chartType}
-              selectedSocial={social.platform}
+              selectedSocial={social.platform ?? undefined}
               rangeLabel="Last 30 days"
               accountId={social.id}
             />

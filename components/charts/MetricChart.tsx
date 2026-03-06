@@ -8,7 +8,7 @@ import { ChartShareButton } from "./ChartShareButton";
 import { useMetricSeriesV2 } from "@/hooks/useMetricSeriesV2";
 import dayjs from "dayjs";
 
-// Supported chart types (pie + radar removed)
+// Supported chart types
 export type ChartType = "line" | "bar" | "area";
 
 type MetricChartProps = {

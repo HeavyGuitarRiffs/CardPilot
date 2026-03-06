@@ -20,7 +20,7 @@ import { SocialTickerCarousel } from "@/components/dashboard/SocialTickerCarouse
 import { SocialCardGrid } from "@/components/dashboard/SocialCardGrid";
 import { SocialAnalyticsDrawer } from "@/components/dashboard/SocialAnalyticsDrawer";
 
-import type { UnifiedSocialMetric, MetricConfig } from "@/app/dashboard/types";
+import type { SocialAnalytics, MetricConfig } from "@/app/dashboard/types";
 
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserSocials } from "@/app/dashboard/actions/fetchUserSocials";
@@ -32,7 +32,6 @@ import {
 
 const supabase = createClient();
 
-// MVP chart types
 type ChartType = "line" | "bar" | "area";
 
 /* -------------------- Chart Switcher -------------------- */
@@ -97,17 +96,20 @@ function MetricDrawer({ metric }: { metric: MetricConfig }) {
   );
 }
 
-/* -------------------- Social Chip Bar (UPDATED) -------------------- */
+/* -------------------- Social Chip Bar -------------------- */
 function SocialChipBar({
   socials,
   selectedPlatform,
   onSelect,
 }: {
-  socials: UnifiedSocialMetric[];
+  socials: SocialAnalytics[];
   selectedPlatform: string | "all";
   onSelect: (platform: string | "all") => void;
 }) {
-  const platforms = Array.from(new Set(socials.map((s) => s.platform)));
+  const platforms = Array.from(
+    new Set(socials.map((s) => s.platform ?? "unknown"))
+  );
+
   if (!platforms.length) return null;
 
   return (
@@ -137,9 +139,9 @@ function SocialChipBar({
 
 /* -------------------- Dashboard Page -------------------- */
 export default function DashboardPage() {
-  const [socials, setSocials] = useState<UnifiedSocialMetric[]>([]);
+  const [socials, setSocials] = useState<SocialAnalytics[]>([]);
   const [selectedSocial, setSelectedSocial] =
-    useState<UnifiedSocialMetric | null>(null);
+    useState<SocialAnalytics | null>(null);
   const [selectedPlatform, setSelectedPlatform] =
     useState<string | "all">("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -203,55 +205,42 @@ export default function DashboardPage() {
   const filteredSocials =
     selectedPlatform === "all"
       ? socials
-      : socials.filter((s) => s.platform === selectedPlatform);
+      : socials.filter(
+          (s) => (s.platform ?? "unknown") === selectedPlatform
+        );
 
   /* -------------------- Metrics -------------------- */
   const METRICS: MetricConfig[] = useMemo(() => {
-    const commentsToday = socials.reduce((sum, s) => sum + s.commentsToday, 0);
-    const commentsWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
-    const commentsMonth = socials.reduce((sum, s) => sum + s.commentsMonth, 0);
-    const totalPosts = socials.reduce((sum, s) => sum + s.posts, 0);
+    const comments = socials.reduce((sum, s) => sum + s.comments, 0);
+    const posts = socials.reduce((sum, s) => sum + s.posts, 0);
 
     return [
       {
-        key: "commentsToday",
-        label: "Comments Today",
-        value: commentsToday,
-        description: "Number of comments you replied to today.",
+        key: "comments",
+        label: "Total Comments",
+        value: comments,
+        description: "Total comments across all socials.",
       },
       {
-        key: "commentsWeek",
-        label: "This Week",
-        value: commentsWeek,
-        description: "Total comments replied to this week.",
-      },
-      {
-        key: "commentsMonth",
-        label: "This Month",
-        value: commentsMonth,
-        description: "Total comments replied to this month.",
-      },
-      {
-        key: "totalPosts",
+        key: "posts",
         label: "Total Posts",
-        value: totalPosts,
-        description: "Total posts on all socials combined.",
+        value: posts,
+        description: "Total posts across all socials.",
       },
     ];
   }, [socials]);
 
   const MOMENTUM_METRIC: MetricConfig = useMemo(() => {
-    const thisWeek = socials.reduce((sum, s) => sum + s.commentsWeek, 0);
-    const lastWeek = thisWeek || 1;
-
-    const momentum = Math.round((thisWeek / lastWeek) * 100 - 100);
+    const momentum = socials.reduce(
+      (sum, s) => sum + (s.momentum ?? 0),
+      0
+    );
 
     return {
       key: "momentum",
       label: "Momentum",
       value: momentum,
-      description:
-        "Engagement velocity compared to last week (placeholder until real last-week data is added).",
+      description: "Engagement velocity across all socials.",
     };
   }, [socials]);
 
@@ -268,7 +257,9 @@ export default function DashboardPage() {
               setSelectedSocial(
                 platform === "all"
                   ? socials[0] ?? null
-                  : socials.find((s) => s.platform === platform) ?? null
+                  : socials.find(
+                      (s) => (s.platform ?? "unknown") === platform
+                    ) ?? null
               );
             }}
           />
@@ -298,7 +289,9 @@ export default function DashboardPage() {
             socials={filteredSocials}
             onSelect={(platform) => {
               setSelectedSocial(
-                socials.find((s) => s.platform === platform) || null
+                socials.find(
+                  (s) => (s.platform ?? "unknown") === platform
+                ) || null
               );
               setDrawerOpen(true);
             }}
