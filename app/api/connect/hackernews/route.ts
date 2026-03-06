@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Redirect unauthenticated users
   if (!user) {
-    return NextResponse.redirect("/login");
+    return NextResponse.redirect(
+      new URL("/login", request.url)
+    );
   }
 
+  // Upsert the social record
   await supabase
     .from("user_socials")
     .upsert(
@@ -24,5 +28,8 @@ export async function GET() {
       { onConflict: "user_id,platform" }
     );
 
-  return NextResponse.redirect("/dashboard/connect");
+  // Redirect to dashboard/connect (absolute URL required)
+  return NextResponse.redirect(
+    new URL("/dashboard/connect", request.url)
+  );
 }
