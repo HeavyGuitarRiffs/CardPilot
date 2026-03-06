@@ -10,73 +10,103 @@ import {
   CREATOR_TOOLS,
 } from "@/lib/platforms";
 
+const ALL_PLATFORMS = [
+  ...SOCIAL,
+  ...VIDEO,
+  ...MUSIC,
+  ...WRITING,
+  ...WEB3,
+  ...MONETIZATION,
+  ...CREATOR_TOOLS,
+];
+
 export default function SchedulePage() {
   const schedule = [
     {
       tier: "Every 5 minutes",
       badge: "Tier 1",
-      socials: [
-        ...SOCIAL.filter((p) =>
-          ["tiktok", "twitter", "youtube", "instagram", "facebook", "twitch", "snapchat", "pinterest", "threads"]
-            .includes(p.name.toLowerCase())
-        ),
-      ],
+      socials: ALL_PLATFORMS.filter((p) =>
+        [
+          "tiktok",
+          "twitter / x",
+          "youtube",
+          "instagram",
+          "facebook",
+          "twitch",
+          "snapchat",
+          "pinterest",
+          "threads",
+        ].includes(p.name.toLowerCase())
+      ),
     },
     {
       tier: "Every 20 minutes",
       badge: "Tier 2",
-      socials: [
-        ...SOCIAL.filter((p) =>
-          ["reddit", "tumblr", "medium", "quora", "substack", "vimeo", "soundcloud", "spotify"]
-            .includes(p.name.toLowerCase())
-        ),
-      ],
+      socials: ALL_PLATFORMS.filter((p) =>
+        [
+          "reddit",
+          "tumblr",
+          "medium",
+          "quora",
+          "substack",
+          "vimeo",
+          "soundcloud",
+          "spotify",
+        ].includes(p.name.toLowerCase())
+      ),
     },
     {
       tier: "Every 30 minutes",
       badge: "Tier 3",
-      socials: [
-        ...SOCIAL.filter((p) =>
-          ["github", "gitlab", "bitbucket", "dev.to", "hashnode", "stackoverflow", "codepen", "hackerrank", "kaggle"]
-            .includes(p.name.toLowerCase())
-        ),
-      ],
+      socials: ALL_PLATFORMS.filter((p) =>
+        [
+          "github",
+          "stackoverflow",
+          "dev.to",
+          "hashnode",
+          "codepen",
+          "codesandbox",
+          "kaggle",
+        ].includes(p.name.toLowerCase())
+      ),
     },
     {
       tier: "Every 1 hour",
       badge: "Tier 4",
-      socials: [
-        ...SOCIAL.filter((p) =>
-          ["product hunt", "hacker news", "indie hackers", "betalist", "angellist", "crunchbase", "makerlog"]
-            .includes(p.name.toLowerCase())
-        ),
-      ],
+      socials: ALL_PLATFORMS.filter((p) =>
+        [
+          "kickstarter",
+          "patreon",
+          "ko-fi",
+          "buy me a coffee",
+          "gumroad",
+          "etsy",
+          "shopify",
+        ].includes(p.name.toLowerCase())
+      ),
     },
     {
       tier: "Every 3 hours",
       badge: "Tier 5",
-      socials: [
-        ...SOCIAL.filter((p) =>
-          [
-            "dribbble",
-            "behance",
-            "letterboxd",
-            "goodreads",
-            "bandcamp",
-            "mixcloud",
-            "rumble",
-            "odysee",
-            "mastodon",
-            "bluesky",
-            "vk",
-            "weibo",
-            "bilibili",
-            "xiaohongshu",
-            "telegram",
-            "discord",
-          ].includes(p.name.toLowerCase())
-        ),
-      ],
+      socials: ALL_PLATFORMS.filter((p) =>
+        [
+          "dribbble",
+          "behance",
+          "letterboxd",
+          "goodreads",
+          "bandcamp",
+          "mixcloud",
+          "rumble",
+          "odysee",
+          "mastodon",
+          "bluesky",
+          "vk",
+          "bilibili",
+          "xiaohongshu (red)",
+          "telegram",
+          "discord",
+        ].includes(p.name.toLowerCase())
+      ),
     },
   ];
 
